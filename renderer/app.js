@@ -116,7 +116,15 @@
     sortKey: 'priority', sortDir: -1,
     prioritySort: { key: 'score', dir: -1 },
     stats: null,
-    hostPriority: []
+    hostPriority: [],
+    // 大資料量：主機聚合 / 網段彙總 / 明細索引
+    rowsByHost: new Map(),
+    subnets: [],
+    hview: 'host',
+    hostSort: { key: 'score', dir: -1 },
+    hostFiltered: [],
+    selectedHost: null,
+    qmode: 'finding'
   };
 
   // ---------------------------------------------------------------------------
@@ -213,16 +221,25 @@
     return svg;
   }
 
-  function chartQuadrant(epssThresh, vprThresh, addedOnly) {
-    const recs = (S.new && S.new.recs.length) ? S.new.recs : (S.old ? S.old.recs : []);
-    // 只取同時有 VPR 與 EPSS 者；限制點數（取風險最高的前 N 個）避免大資料量卡頓
-    const addedKeys = new Set(S.rows.filter(r => r.status === 'added').map(r => r.host + '|' + findingKey(r)));
+  function chartQuadrant(epssThresh, vprThresh, addedOnly, mode) {
     let pts = [];
-    for (const r of recs) {
-      if (r.vpr == null || r.epss == null) continue;
-      const isAdded = addedKeys.has(r.host + '|' + findingKey(r));
-      if (addedOnly && !isAdded) continue;
-      pts.push({ x: r.epss, y: r.vpr, risk: r.risk, host: r.host, name: r.name, added: isAdded, w: (r.vpr / 10) * r.epss });
+    if (mode === 'host') {
+      // 一點 = 一台主機（取該主機最高 VPR/EPSS）→ 300+ 主機時避免上千弱點點重疊
+      for (const h of S.hostPriority) {
+        if (!h.maxVpr || !h.maxEpss) continue;
+        if (addedOnly && !h.added) continue;
+        const risk = h.crit ? 'Critical' : (h.high ? 'High' : 'Medium');
+        pts.push({ x: h.maxEpss, y: h.maxVpr, risk, host: h.host, name: `${h.count} 筆弱點`, added: h.added > 0, w: h.score });
+      }
+    } else {
+      const recs = (S.new && S.new.recs.length) ? S.new.recs : (S.old ? S.old.recs : []);
+      const addedKeys = new Set(S.rows.filter(r => r.status === 'added').map(r => r.host + '|' + findingKey(r)));
+      for (const r of recs) {
+        if (r.vpr == null || r.epss == null) continue;
+        const isAdded = addedKeys.has(r.host + '|' + findingKey(r));
+        if (addedOnly && !isAdded) continue;
+        pts.push({ x: r.epss, y: r.vpr, risk: r.risk, host: r.host, name: r.name, added: isAdded, w: (r.vpr / 10) * r.epss });
+      }
     }
     const MAXPTS = 800;
     let capped = false;
@@ -269,6 +286,39 @@
     svg.appendChild(svgEl('text', { x: X(1) - 4, y: pad.t + 14, 'text-anchor': 'end', class: 'quad-label' }, '⚠ 優先處理'));
     if (capped) svg.appendChild(svgEl('text', { x: pad.l + 2, y: pad.t + 12, class: 'quad-label' }, `僅顯示風險最高的 ${MAXPTS} 點`));
     return svg;
+  }
+
+  // 主機風險熱力圖：每格一台主機，色階由優先分數決定。以 DOM 色塊呈現（輕量），
+  // 大量主機時只畫前 N 格避免 DOM 膨脹。
+  function heatColor(t) { // t: 0..1
+    const stops = [[45, 212, 167], [255, 210, 63], [255, 140, 66], [255, 77, 109]];
+    const x = Math.max(0, Math.min(1, t)) * (stops.length - 1);
+    const i = Math.floor(x), f = x - i, a = stops[i], b = stops[Math.min(i + 1, stops.length - 1)];
+    return `rgb(${Math.round(a[0] + (b[0] - a[0]) * f)},${Math.round(a[1] + (b[1] - a[1]) * f)},${Math.round(a[2] + (b[2] - a[2]) * f)})`;
+  }
+  function chartHeatmap(priority) {
+    const wrap = document.createElement('div');
+    if (!priority.length) { wrap.textContent = '（無資料）'; return wrap; }
+    const CAP = 600;
+    const list = priority.slice(0, CAP);
+    const maxScore = Math.max(0.0001, ...list.map(h => h.score));
+    const grid = document.createElement('div'); grid.className = 'heatmap-grid';
+    for (const h of list) {
+      const cell = document.createElement('div'); cell.className = 'heat-cell';
+      cell.style.background = heatColor(h.score / maxScore);
+      cell.title = `${h.host}\n優先分數 ${h.score.toFixed(2)} · 最高VPR ${h.maxVpr.toFixed(1)} · 最高EPSS ${(h.maxEpss * 100).toFixed(0)}%\nCritical ${h.crit} · High ${h.high} · 弱點 ${h.count}`;
+      cell.addEventListener('click', () => { switchTab('priority'); openHostDetail(h.host); });
+      cell.style.cursor = 'pointer';
+      grid.appendChild(cell);
+    }
+    wrap.appendChild(grid);
+    const legend = document.createElement('div'); legend.className = 'heat-legend';
+    legend.appendChild(document.createTextNode('低風險 '));
+    const scale = document.createElement('span'); scale.className = 'heat-scale'; legend.appendChild(scale);
+    legend.appendChild(document.createTextNode(' 高風險（點格子看主機明細）'));
+    wrap.appendChild(legend);
+    if (priority.length > CAP) { const more = document.createElement('div'); more.className = 'heat-more'; more.textContent = `共 ${priority.length} 台，僅顯示風險最高的前 ${CAP} 台。`; wrap.appendChild(more); }
+    return wrap;
   }
 
   // ---------------------------------------------------------------------------
@@ -332,16 +382,17 @@
     const fr = $('#f-risk').value;
     const fvpr = num($('#f-vpr').value);
     const fepss = num($('#f-epss').value);
+    const hideInfo = $('#f-hideinfo').checked;
+    const actionOnly = $('#f-action').checked;
     const out = [];
     for (const r of S.rows) {
+      if (hideInfo && r.riskLevel === 0) continue;                       // 收斂：隱藏 Info/None
+      if (actionOnly && !(r.status === 'added' || r.status === 'changed' || r.riskLevel >= 3)) continue; // 只看需行動
       if (fs && r.status !== fs) continue;
       if (fr) { if (fr === 'Info') { if (r.risk !== 'Info') continue; } else if (r.risk !== fr) continue; }
       if (fvpr != null && (r.vpr == null || r.vpr < fvpr)) continue;
       if (fepss != null && (r.epss == null || r.epss < fepss)) continue;
-      if (q) {
-        const hay = (r.host + ' ' + r.name + ' ' + r.cve + ' ' + r.pluginId).toLowerCase();
-        if (hay.indexOf(q) === -1) continue;
-      }
+      if (q && r._hay.indexOf(q) === -1) continue;                       // 用預建索引，省每鍵重算
       out.push(r);
     }
     // 排序：非明確欄位時預設用 priority
@@ -470,6 +521,184 @@
     }
     table.appendChild(tbody);
     cont.appendChild(table);
+  }
+
+  // ---------------------------------------------------------------------------
+  // 9b. 優先主機分頁：主機聚合（虛擬捲動）/ 網段彙總 / 明細抽屜
+  //     — 針對 300+ IP、上萬筆的收斂與導覽
+  // ---------------------------------------------------------------------------
+  const HCOLS = [
+    { key: 'host', label: '主機 / IP', w: '180px' },
+    { key: 'score', label: '優先分數', w: 'minmax(120px,1fr)', type: 'bar' },
+    { key: 'maxVpr', label: '最高VPR', w: '84px', type: 'num', fmt: v => v ? v.toFixed(1) : '—' },
+    { key: 'maxEpss', label: '最高EPSS', w: '92px', type: 'num', fmt: v => v ? (v * 100).toFixed(1) + '%' : '—' },
+    { key: 'urgent', label: '緊急', w: '64px', type: 'num' },
+    { key: 'crit', label: 'Critical', w: '78px', type: 'num' },
+    { key: 'high', label: 'High', w: '64px', type: 'num' },
+    { key: 'count', label: '弱點數', w: '76px', type: 'num' },
+    { key: 'added', label: '本次新增', w: '84px', type: 'num', diffOnly: true }
+  ];
+  const HROW_H = 34;
+  function hcols() { return HCOLS.filter(c => !c.diffOnly || (S.stats && S.stats.mode === 'diff')); }
+  function hgridTemplate() { return hcols().map(c => c.w).join(' '); }
+
+  function buildHostHeader() {
+    const head = $('#hthead'); head.replaceChildren();
+    head.style.gridTemplateColumns = hgridTemplate();
+    for (const c of hcols()) {
+      const th = document.createElement('div'); th.className = 'th'; th.textContent = c.label;
+      if (S.hostSort.key === c.key) { const a = document.createElement('span'); a.className = 'arrow'; a.textContent = S.hostSort.dir > 0 ? '▲' : '▼'; th.appendChild(a); }
+      th.addEventListener('click', () => {
+        if (S.hostSort.key === c.key) S.hostSort.dir = -S.hostSort.dir;
+        else { S.hostSort.key = c.key; S.hostSort.dir = (c.type === 'num' || c.type === 'bar') ? -1 : 1; }
+        applyHostFilter(); buildHostHeader();
+      });
+      head.appendChild(th);
+    }
+  }
+
+  function applyHostFilter() {
+    const q = $('#h-search').value.trim().toLowerCase();
+    const urgentOnly = $('#h-urgent-only').checked;
+    const out = [];
+    for (const h of S.hostPriority) {
+      if (urgentOnly && !(h.urgent > 0 || h.added > 0)) continue;
+      if (q && h.host.toLowerCase().indexOf(q) === -1 && NCore.subnetOf(h.host).toLowerCase().indexOf(q) === -1) continue;
+      out.push(h);
+    }
+    const key = S.hostSort.key, dir = S.hostSort.dir;
+    out.sort((a, b) => (typeof a[key] === 'string') ? dir * a[key].localeCompare(b[key]) : dir * ((a[key] > b[key]) ? 1 : (a[key] < b[key] ? -1 : 0)));
+    S.hostFiltered = out;
+    if (S.hview === 'host') { $('#h-count').textContent = `${fmt(out.length)} 台主機（共 ${fmt(S.hostPriority.length)}）`; renderHostVirtual(); }
+    else renderSubnet();
+  }
+
+  let hScrollBound = false;
+  function renderHostVirtual() {
+    const viewport = $('#hviewport'), spacer = $('#hspacer'), rowsEl = $('#hrows');
+    const total = S.hostFiltered.length;
+    const maxScore = Math.max(0.0001, ...S.hostFiltered.map(h => h.score));
+    spacer.style.height = (total * HROW_H) + 'px';
+    if (!hScrollBound) { viewport.addEventListener('scroll', paint, { passive: true }); hScrollBound = true; }
+    paint();
+    function paint() {
+      const st = viewport.scrollTop, vh = viewport.clientHeight;
+      const start = Math.max(0, Math.floor(st / HROW_H) - 4);
+      const end = Math.min(total, Math.ceil((st + vh) / HROW_H) + 4);
+      rowsEl.style.transform = `translateY(${start * HROW_H}px)`;
+      const tmpl = hgridTemplate(), frag = document.createDocumentFragment();
+      for (let i = start; i < end; i++) frag.appendChild(makeHostRow(S.hostFiltered[i], tmpl, maxScore));
+      rowsEl.replaceChildren(frag);
+    }
+  }
+
+  function makeHostRow(h, tmpl, maxScore) {
+    const row = document.createElement('div');
+    row.className = 'vrow clickable' + (S.selectedHost === h.host ? ' selected' : '');
+    row.style.gridTemplateColumns = tmpl; row.style.height = HROW_H + 'px';
+    row.addEventListener('click', () => openHostDetail(h.host));
+    for (const c of hcols()) {
+      const td = document.createElement('div');
+      td.className = 'td' + (c.type === 'num' ? ' num' : '');
+      if (c.type === 'bar') {
+        td.className = 'td num bar-cell';
+        const fill = document.createElement('span'); fill.className = 'bar-fill'; fill.style.width = Math.round((h.score / maxScore) * 100) + '%';
+        const s = document.createElement('span'); s.className = 'bar-val'; s.textContent = h.score.toFixed(2);
+        td.appendChild(fill); td.appendChild(s);
+      } else if (c.type === 'num') {
+        td.textContent = c.fmt ? c.fmt(h[c.key]) : h[c.key];
+        if (c.key === 'urgent' && h.urgent > 0) td.style.color = 'var(--crit)';
+        if (c.key === 'added' && h.added > 0) td.style.color = 'var(--added)';
+      } else {
+        td.textContent = h[c.key]; td.title = h[c.key];
+      }
+      row.appendChild(td);
+    }
+    return row;
+  }
+
+  function openHostDetail(host) {
+    S.selectedHost = host;
+    // 標記選中列（僅更新可見列）
+    renderHostVirtual();
+    const box = $('#host-detail'); box.hidden = false; box.replaceChildren();
+    const rows = (S.rowsByHost.get(host) || []).slice().sort((a, b) => b.priority - a.priority || b.riskLevel - a.riskLevel);
+    const head = document.createElement('div'); head.className = 'hd-head';
+    const title = document.createElement('div'); title.className = 'hd-title';
+    title.textContent = `${host} — ${rows.length} 筆弱點（${NCore.subnetOf(host)}）`;
+    const close = document.createElement('button'); close.className = 'hd-close'; close.textContent = '✕'; close.title = '關閉';
+    close.addEventListener('click', () => { box.hidden = true; S.selectedHost = null; renderHostVirtual(); });
+    head.appendChild(title); head.appendChild(close); box.appendChild(head);
+
+    const diff = S.stats && S.stats.mode === 'diff';
+    const tbl = document.createElement('div'); tbl.className = 'mini-table';
+    const t = document.createElement('table');
+    const thead = document.createElement('thead'); const htr = document.createElement('tr');
+    (diff ? ['狀態', '弱點名稱', '嚴重度', 'Port', 'VPR', 'EPSS', 'CVE'] : ['弱點名稱', '嚴重度', 'Port', 'VPR', 'EPSS', 'CVE']).forEach(h => { const th = document.createElement('th'); th.textContent = h; htr.appendChild(th); });
+    thead.appendChild(htr); t.appendChild(thead);
+    const tb = document.createElement('tbody');
+    for (const r of rows) {
+      const tr = document.createElement('tr');
+      const cells = [];
+      if (diff) { const c = document.createElement('span'); c.className = 'st-' + r.status; c.textContent = STATUS_LABEL[r.status] || r.status; cells.push(c); }
+      cells.push(txt(r.name));
+      const pill = document.createElement('span'); pill.className = 'pill risk-' + r.risk; pill.textContent = r.risk; cells.push(pill);
+      cells.push(txt(r.port || '—'));
+      cells.push(txt(r.vpr == null ? '—' : r.vpr, true));
+      cells.push(txt(r.epss == null ? '—' : (r.epss * 100).toFixed(1) + '%', true));
+      cells.push(txt(r.cve || '—'));
+      for (const cell of cells) { const td = document.createElement('td'); if (typeof cell === 'string') td.textContent = cell; else td.appendChild(cell); tr.appendChild(td); }
+      tb.appendChild(tr);
+    }
+    t.appendChild(tb); tbl.appendChild(t); box.appendChild(tbl);
+    box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    function txt(v) { return String(v); }
+  }
+
+  function renderSubnet() {
+    const cont = $('#subnet-mode'); cont.replaceChildren();
+    const q = $('#h-search').value.trim().toLowerCase();
+    const urgentOnly = $('#h-urgent-only').checked;
+    let list = S.subnets.filter(s => (!q || s.subnet.toLowerCase().indexOf(q) !== -1) && (!urgentOnly || s.urgent > 0 || s.added > 0));
+    $('#h-count').textContent = `${fmt(list.length)} 個網段（共 ${fmt(S.subnets.length)}）`;
+    if (!list.length) { cont.textContent = '（無資料）'; return; }
+    const diff = S.stats && S.stats.mode === 'diff';
+    const maxScore = Math.max(0.0001, ...list.map(s => s.score));
+    const table = document.createElement('table');
+    const thead = document.createElement('thead'); const htr = document.createElement('tr');
+    const cols = [['subnet', '網段 /24', false], ['score', '優先分數', true], ['hosts', '主機數', true], ['urgent', '緊急', true], ['crit', 'Critical', true], ['high', 'High', true], ['count', '弱點數', true]];
+    if (diff) cols.push(['added', '本次新增', true]);
+    for (const [, label, n] of cols) { const th = document.createElement('th'); th.textContent = label; if (n) th.className = 'num'; htr.appendChild(th); }
+    thead.appendChild(htr); table.appendChild(thead);
+    const tb = document.createElement('tbody');
+    for (const s of list) {
+      const tr = document.createElement('tr');
+      for (const [k, , n] of cols) {
+        const td = document.createElement('td');
+        if (k === 'score') {
+          td.className = 'num bar-cell';
+          const fill = document.createElement('span'); fill.className = 'bar-fill'; fill.style.width = Math.round((s.score / maxScore) * 100) + '%';
+          const val = document.createElement('span'); val.className = 'bar-val'; val.textContent = s.score.toFixed(2);
+          td.appendChild(fill); td.appendChild(val);
+        } else if (k === 'subnet') {
+          const a = document.createElement('span'); a.textContent = s.subnet; a.style.cursor = 'pointer'; a.style.color = 'var(--accent)';
+          a.title = '點擊：切到主機聚合並篩選此網段';
+          a.addEventListener('click', () => { switchHostView('host'); $('#h-search').value = s.subnet.replace('.0/24', '.'); applyHostFilter(); });
+          td.appendChild(a);
+        } else { td.textContent = s[k]; if (n) td.className = 'num'; if (k === 'urgent' && s.urgent > 0) td.style.color = 'var(--crit)'; }
+        tr.appendChild(td);
+      }
+      tb.appendChild(tr);
+    }
+    table.appendChild(tb); cont.appendChild(table);
+  }
+
+  function switchHostView(view) {
+    S.hview = view;
+    $$('#tab-priority .viewtoggle .seg').forEach(b => b.classList.toggle('active', b.dataset.hview === view));
+    $('#host-mode').hidden = view !== 'host';
+    $('#subnet-mode').hidden = view !== 'subnet';
+    applyHostFilter();
   }
 
   // ---------------------------------------------------------------------------
@@ -664,7 +893,7 @@
     $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
     $$('.tabpane').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
     if (name === 'charts') renderCharts();
-    if (name === 'priority') renderPriorityTable('#priority-table', S.hostPriority);
+    if (name === 'priority' && S.stats) applyHostFilter(); // 切到分頁時以正確視窗高度重繪
     if (name === 'log') Log.rerender();
   }
 
@@ -738,7 +967,19 @@
     S.rows = NCore.computeRows(oldRecs, newRecs);
     S.stats = NCore.computeStats(oldRecs, newRecs, S.rows);
     S.hostPriority = NCore.computeHostPriority(oldRecs, newRecs, S.rows);
+    S.subnets = NCore.computeSubnetAggregation(S.hostPriority);
     S.prioritySort = { key: 'score', dir: -1 };
+    S.hostSort = { key: 'score', dir: -1 };
+    S.selectedHost = null;
+
+    // 大資料量優化：一次建好搜尋索引與主機→明細索引，避免每次篩選/展開重算
+    S.rowsByHost = new Map();
+    for (const r of S.rows) {
+      r._hay = (r.host + ' ' + r.name + ' ' + r.cve + ' ' + r.pluginId).toLowerCase();
+      let a = S.rowsByHost.get(r.host);
+      if (!a) { a = []; S.rowsByHost.set(r.host, a); }
+      a.push(r);
+    }
     Log.info(`比對計算完成：${S.rows.length} 筆差異列，耗時 ${(performance.now() - t0).toFixed(0)}ms（新增 ${S.stats.added}／修復 ${S.stats.removed}／持續 ${S.stats.persistent}／變更 ${S.stats.changed}）`);
 
     // 顯示總覽
@@ -752,6 +993,11 @@
     buildHeader();
     S.sortKey = 'priority'; S.sortDir = -1;
     applyFilterSort();
+
+    // 主機聚合分頁（準備資料 + 計數，實際 DOM 於切到該分頁時渲染）
+    S.hview = 'host';
+    buildHostHeader();
+    applyHostFilter();
   }
 
   function renderOverviewCharts() {
@@ -761,18 +1007,22 @@
   function renderCharts() {
     if (!S.stats) return;
     const et = num($('#q-epss').value) ?? 0.5, vt = num($('#q-vpr').value) ?? 7, ao = $('#q-added-only').checked;
-    $('#chart-quadrant').replaceChildren(chartQuadrant(et, vt, ao));
+    $('#chart-quadrant').replaceChildren(chartQuadrant(et, vt, ao, S.qmode));
+    $('#chart-heatmap').replaceChildren(chartHeatmap(S.hostPriority));
     $('#chart-severity2').replaceChildren(chartSeverity(S.stats.oldSev, S.stats.newSev, S.stats.mode));
     $('#chart-tophosts').replaceChildren(chartTopHosts(S.hostPriority));
   }
 
   function clearAll() {
     S.old = null; S.new = null; S.rows = []; S.filtered = []; S.stats = null; S.hostPriority = [];
+    S.rowsByHost = new Map(); S.subnets = []; S.hostFiltered = []; S.selectedHost = null;
     ['#dz-old', '#dz-new'].forEach(sel => { const dz = $(sel); dz.classList.remove('loaded'); $('[data-role=filename]', dz).textContent = ''; });
     $('#overview-empty').hidden = false; $('#overview-body').hidden = true;
     $('#vrows').replaceChildren(); $('#vspacer').style.height = '0px'; $('#diff-count').textContent = '—';
     $('#diff-empty').hidden = false;
-    ['#chart-quadrant', '#chart-severity2', '#chart-tophosts', '#priority-table', '#overview-priority', '#stat-grid'].forEach(s => { const el = $(s); if (el) el.replaceChildren(); });
+    $('#hrows').replaceChildren(); $('#hspacer').style.height = '0px'; $('#hthead').replaceChildren();
+    $('#host-detail').hidden = true; $('#host-detail').replaceChildren(); $('#h-count').textContent = '—';
+    ['#chart-quadrant', '#chart-heatmap', '#chart-severity2', '#chart-tophosts', '#subnet-mode', '#overview-priority', '#stat-grid'].forEach(s => { const el = $(s); if (el) el.replaceChildren(); });
     $('#btn-clear').disabled = true;
     toast('已清除所有資料，記憶體已釋放。', 'ok');
     Log.info('使用者清除所有資料（記憶體釋放）');
@@ -804,14 +1054,26 @@
     $('#f-search').addEventListener('input', debounce(applyFilterSort, 180));
     ['#f-status', '#f-risk'].forEach(s => $(s).addEventListener('change', applyFilterSort));
     ['#f-vpr', '#f-epss'].forEach(s => $(s).addEventListener('input', debounce(applyFilterSort, 200)));
+    ['#f-hideinfo', '#f-action'].forEach(s => $(s).addEventListener('change', applyFilterSort));
     $('#f-reset').addEventListener('click', () => {
       $('#f-search').value = ''; $('#f-status').value = ''; $('#f-risk').value = ''; $('#f-vpr').value = ''; $('#f-epss').value = '';
+      $('#f-hideinfo').checked = true; $('#f-action').checked = false;
       applyFilterSort();
     });
 
     // 圖表控制
     ['#q-epss', '#q-vpr'].forEach(s => $(s).addEventListener('input', debounce(renderCharts, 200)));
     $('#q-added-only').addEventListener('change', renderCharts);
+    $$('#tab-charts .viewtoggle .seg').forEach(b => b.addEventListener('click', () => {
+      S.qmode = b.dataset.qmode;
+      $$('#tab-charts .viewtoggle .seg').forEach(x => x.classList.toggle('active', x === b));
+      renderCharts();
+    }));
+
+    // 優先主機分頁：檢視切換 / 搜尋 / 篩選
+    $$('#tab-priority .viewtoggle .seg').forEach(b => b.addEventListener('click', () => switchHostView(b.dataset.hview)));
+    $('#h-search').addEventListener('input', debounce(applyHostFilter, 180));
+    $('#h-urgent-only').addEventListener('change', applyHostFilter);
 
     // 匯出
     $('#btn-export-csv').addEventListener('click', exportDiffCSV);

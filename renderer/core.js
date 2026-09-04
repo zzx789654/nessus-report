@@ -123,6 +123,28 @@
 
   function findingKey(rec) { return rec.pluginId + '|' + rec.port + '|' + rec.protocol; }
 
+  // 由主機推導 /24 網段（非 IPv4 歸為「其他」），供 300+ IP 時的網段彙總收斂
+  function subnetOf(host) {
+    const m = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.\d{1,3}$/.exec(String(host).trim());
+    return m ? `${m[1]}.${m[2]}.${m[3]}.0/24` : '其他 / 非 IPv4';
+  }
+
+  // 網段彙總：把每台主機的指標依 /24 累加，讓大量 IP 先收斂到「哪個網段最糟」
+  function computeSubnetAggregation(hostPriority) {
+    const map = new Map();
+    for (const h of hostPriority) {
+      const key = subnetOf(h.host);
+      let s = map.get(key);
+      if (!s) { s = { subnet: key, score: 0, crit: 0, high: 0, urgent: 0, added: 0, hosts: 0, count: 0, maxVpr: 0, maxEpss: 0 }; map.set(key, s); }
+      s.score += h.score; s.crit += h.crit; s.high += h.high; s.urgent += h.urgent;
+      s.added += h.added; s.hosts++; s.count += h.count;
+      s.maxVpr = Math.max(s.maxVpr, h.maxVpr); s.maxEpss = Math.max(s.maxEpss, h.maxEpss);
+    }
+    const arr = Array.from(map.values());
+    arr.sort((a, b) => b.score - a.score);
+    return arr;
+  }
+
   // CSV 匯出：防公式注入（=,+,-,@,Tab,CR 開頭者前置單引號）＋ 正確跳脫
   function csvCell(v) {
     let s = (v == null) ? '' : String(v);
@@ -240,6 +262,7 @@
   return {
     escapeXml, num, parseCSV, COLDEF, REQUIRED, mapColumns, RISK_LEVEL,
     normRisk, normalize, findingKey, csvCell, buildIndex, mkRow,
-    computeRows, severityCounts, computeStats, computeHostPriority
+    computeRows, severityCounts, computeStats, computeHostPriority,
+    subnetOf, computeSubnetAggregation
   };
 });

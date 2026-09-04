@@ -131,6 +131,25 @@ console.log('\n[7] 缺 VPR/EPSS 降級（優先分數不為全 0）');
   eq('高風險主機優先', pr[0].host, '1.1.1.1');
 })();
 
+console.log('\n[8] 網段彙總（300+ IP 收斂）');
+(function () {
+  eq('IPv4 /24', C.subnetOf('10.0.5.23'), '10.0.5.0/24');
+  eq('非 IPv4 歸類', C.subnetOf('web-server.local'), '其他 / 非 IPv4');
+  // 造 3 個網段、每段多台主機
+  let csv = 'Host,Plugin ID,Risk,VPR Score,EPSS Score\n';
+  for (let s = 1; s <= 3; s++) for (let h = 1; h <= 5; h++)
+    csv += `10.0.${s}.${h},${1000 + s * 10 + h},${s === 1 ? 'Critical' : 'Medium'},${s === 1 ? 9.5 : 4},${s === 1 ? 0.9 : 0.05}\n`;
+  const { recs } = C.normalize(C.parseCSV(csv), C.mapColumns(C.parseCSV(csv)[0]));
+  const rows = C.computeRows([], recs);
+  const pr = C.computeHostPriority([], recs, rows);
+  const subs = C.computeSubnetAggregation(pr);
+  eq('網段數', subs.length, 3);
+  eq('最糟網段', subs[0].subnet, '10.0.1.0/24');
+  eq('最糟網段主機數', subs[0].hosts, 5);
+  eq('最糟網段 Critical 數', subs[0].crit, 5);
+  ok('網段分數遞減', subs[0].score >= subs[1].score);
+})();
+
 console.log('\n──────────────────────────────');
 console.log(`結果：${pass} 通過 / ${fail} 失敗`);
 process.exit(fail ? 1 : 0);

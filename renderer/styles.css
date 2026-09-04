@@ -210,6 +210,30 @@ button { font-family: inherit; }
 .chart-holder .bar-label { fill: var(--text); font-size: 11px; }
 .chart-holder .quad-label { fill: var(--text-faint); font-size: 11px; }
 
+/* 檢視切換（分段按鈕） */
+.viewtoggle { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.viewtoggle .seg { border: none; background: var(--bg-3); color: var(--text-dim); padding: 7px 14px; cursor: pointer; font-size: 13px; }
+.viewtoggle .seg + .seg { border-left: 1px solid var(--line); }
+.viewtoggle .seg:hover { color: var(--text); }
+.viewtoggle .seg.active { background: var(--accent); color: #fff; }
+
+/* 主機明細抽屜 */
+.vviewport.short { height: 46vh; }
+.host-detail { margin-top: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-2); padding: 12px 14px; }
+.host-detail .hd-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.host-detail .hd-title { font-weight: 650; font-size: 14px; }
+.host-detail .hd-close { cursor: pointer; color: var(--text-dim); background: none; border: none; font-size: 18px; }
+.host-detail .hd-close:hover { color: var(--text); }
+.vrow.selected { background: rgba(79,140,255,.12); }
+.vrow.clickable { cursor: pointer; }
+
+/* 熱力圖 */
+.heatmap-grid { display: flex; flex-wrap: wrap; gap: 3px; }
+.heat-cell { width: 22px; height: 22px; border-radius: 3px; cursor: default; }
+.heat-legend { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 11.5px; color: var(--text-dim); }
+.heat-scale { width: 120px; height: 10px; border-radius: 5px; background: linear-gradient(90deg,#2dd4a7,#ffd23f,#ff8c42,#ff4d6d); }
+.heat-more { font-size: 11.5px; color: var(--text-faint); margin-top: 8px; }
+
 /* 忙碌遮罩 */
 .busy { position: fixed; inset: 0; background: rgba(8,11,18,.6); display: flex; align-items: center; justify-content: center; z-index: 50; }
 .busy-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px 32px; text-align: center; box-shadow: var(--shadow); }
