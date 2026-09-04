@@ -1,0 +1,8 @@
+Plugin ID,CVE,CVSS v2.0 Base Score,CVSS v3.0 Base Score,Risk,Host,Protocol,Port,Name,Synopsis,Solution,VPR Score,EPSS Score
+19506,,,,None,192.168.1.10,tcp,0,Nessus Scan Information,This plugin displays information about the Nessus scan.,n/a,,
+153953,CVE-2021-44228,9.3,10.0,Critical,192.168.1.10,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),The remote host runs a version of Log4j affected by an RCE.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975
+42873,CVE-2013-2566,4.3,,Medium,192.168.1.10,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),The remote service supports the use of the RC4 cipher.,Reconfigure the service to disable RC4.,4.4,0.012
+104743,CVE-2017-0144,9.3,8.1,Critical,192.168.1.20,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,The remote host is affected by the EternalBlue SMBv1 vulnerability.,Apply the MS17-010 security update.,9.6,0.94
+51192,CVE-2016-2183,5.0,7.5,Medium,192.168.1.20,tcp,3389,SSL Certificate Cannot Be Trusted,The SSL certificate for this service cannot be trusted.,Purchase or generate a proper certificate.,5.9,0.31
+90317,CVE-2008-5161,4.3,,Low,192.168.1.30,tcp,22,SSH Weak Algorithms Supported,The remote SSH server is configured to allow weak encryption.,Disable the weak algorithms.,3.1,0.008
+35291,CVE-2011-3389,4.3,,Medium,192.168.1.30,tcp,443,SSL/TLS BEAST Vulnerability,The remote service is vulnerable to the BEAST attack.,Configure the server to prefer TLS 1.2+.,4.0,0.09

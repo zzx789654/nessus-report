@@ -1,0 +1,8 @@
+Plugin ID,CVE,CVSS v2.0 Base Score,CVSS v3.0 Base Score,Risk,Host,Protocol,Port,Name,Synopsis,Solution,VPR Score,EPSS Score
+19506,,,,None,192.168.1.10,tcp,0,Nessus Scan Information,This plugin displays information about the Nessus scan.,n/a,,
+153953,CVE-2021-44228,9.3,10.0,Critical,192.168.1.10,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),The remote host runs a version of Log4j affected by an RCE.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975
+156032,CVE-2022-22965,,9.8,Critical,192.168.1.10,tcp,8080,Spring Framework RCE (Spring4Shell),The remote host is affected by the Spring4Shell RCE vulnerability.,Upgrade Spring Framework to a fixed version.,9.1,0.90
+51192,CVE-2016-2183,5.0,7.5,High,192.168.1.20,tcp,3389,SSL Certificate Cannot Be Trusted,The SSL certificate for this service cannot be trusted.,Purchase or generate a proper certificate.,7.4,0.31
+104743,CVE-2017-0144,9.3,8.1,Critical,192.168.1.20,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,The remote host is affected by the EternalBlue SMBv1 vulnerability.,Apply the MS17-010 security update.,9.6,0.94
+97833,CVE-2019-0708,10.0,9.8,Critical,192.168.1.40,tcp,3389,MS RDP Remote Code Execution (BlueKeep),The remote host is affected by the BlueKeep RDP RCE vulnerability.,Apply the Microsoft security update for CVE-2019-0708.,9.9,0.96
+25220,CVE-2004-2761,2.6,,Low,192.168.1.40,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5),The SSL certificate uses a weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006

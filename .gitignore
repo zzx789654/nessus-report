@@ -1,0 +1,10 @@
+node_modules/
+dist/
+out/
+*.log
+# 匯出的報表 / 使用者資料（本工具不落地，但避免誤加入）
+nessus-report-*.html
+nessus-diff-*.csv
+nessus-diff-*.log
+.DS_Store
+Thumbs.db

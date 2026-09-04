@@ -1,0 +1,127 @@
+# Nessus Diff — 離線弱點掃描比對工具
+
+一個**完全離線**的桌面工具，讓資安分析師匯入兩份 Nessus 弱點掃描 CSV，**以 IP 為主 Key 快速比對差異**（新增 / 已修復 / 持續 / 變更），並用 **EPSS**（漏洞被實際利用機率）與 **VPR**（Tenable 漏洞優先分數）看出**哪些主機要優先處理**，最後一鍵產出報告。
+
+> 以「不複雜、簡單、順手、低記憶體」為原則設計。主流程只有三步：**匯入兩份 CSV → 看結果 → 匯出報告**。
+
+---
+
+## 核心特性
+
+| 需求 | 實作 |
+|------|------|
+| 每次開啟重新匯入、不記憶 | 不使用任何 localStorage / IndexedDB / 檔案快取，資料僅存記憶體；關窗即釋放，另有「清除資料」按鈕 |
+| 以 IP 為主 Key 的 CSV 比對 | 以 `Host` 分組，finding key = `Plugin ID + Port + Protocol`；標記**新增 / 已修復 / 持續 / 變更** |
+| 快速篩選與排序 | 關鍵字（主機/名稱/CVE/Plugin ID）、狀態、嚴重度、VPR≥、EPSS≥；點欄位標題排序 |
+| 風險圖表（EPSS / VPR） | **EPSS × VPR 四象限**（右上=最優先）、嚴重度分佈對比、差異總覽、Top 風險主機 |
+| 漏洞總數統計 | KPI 卡：總數、各嚴重度、主機數、新增/修復、新增 CVE 數 + 增減量 |
+| 執行 Log | 分級（DEBUG/INFO/WARN/ERROR）、攔截未捕捉錯誤、可匯出 `.log` |
+| 報表產出 | 單一 HTML 報表（內嵌 SVG 圖表），可勾選內容、可只納入 Critical/High、可套用目前篩選 |
+| 缺欄位處理 / 範例 | 缺**必要**欄位 → 明確錯誤並提示；缺**選用**欄位 → 圖表優雅降級並於 Log 警示；內建「下載範例 CSV」 |
+| 大資料量 | CSV 分塊解析、差異表**虛擬捲動**（只渲染可見列）、四象限圖限制資料點、統計一次算好快取 |
+| 完全離線 | Electron 安全外殼（無網路、`connect-src 'none'`），CDN/外連一律封鎖 |
+
+---
+
+## 執行方式
+
+### 方式一：Electron 桌面 App（建議）
+
+```bash
+npm install      # 安裝 Electron（僅開發相依，執行期零相依）
+npm start        # 開啟桌面視窗
+```
+
+### 方式二：瀏覽器直接開（零安裝備援）
+
+核心邏輯為純前端，直接用瀏覽器開啟 `renderer/index.html` 即可使用（匯出改用瀏覽器下載）。
+適合不便安裝 Node 的環境；一樣完全離線。
+
+---
+
+## Nessus CSV 欄位說明
+
+Nessus 匯出的 CSV（Export → CSV）常見欄位如下。本工具**以表頭名稱對應、忽略大小寫、支援別名**，欄位順序不限。
+
+### 必要欄位（缺少則無法匯入）
+| 欄位 | 別名 | 用途 |
+|------|------|------|
+| `Host` | `IP Address`, `IP`, `DNS Name`, `FQDN` | 比對主 Key（主機/IP） |
+| `Plugin ID` | `PluginID`, `Plugin` | 弱點識別 |
+
+### 建議欄位（缺少則降級，仍可運作）
+| 欄位 | 別名 | 缺少時的處理 |
+|------|------|--------------|
+| `Risk` | `Severity`, `Risk Factor` | 改由 CVSS 分數推導嚴重度 |
+| `Name` | `Plugin Name` | 以 `Plugin <ID>` 代替 |
+| `Port` / `Protocol` | `Proto` | 影響 finding 唯一性（同主機不同 port 會併計） |
+| `VPR Score` | `VPR` | 四象限縱軸 / 優先分數缺該維度 |
+| `EPSS Score` | `EPSS` | 四象限橫軸 / 優先分數改用嚴重度+VPR 降級排序 |
+| `CVE` | `CVEs` | 「新增 CVE 數」統計會變少 |
+| `CVSS v3.0 Base Score` / `CVSS v2.0 Base Score` | `CVSS` | 無 Risk 時無法推導嚴重度 |
+
+> 缺少必要欄位時，畫面會列出偵測到的欄位並提示；可點右上「**下載範例 CSV**」對照正確格式。
+> `samples/` 內附 `scan_baseline.csv`（基準）與 `scan_current.csv`（當前）兩份範例，可直接匯入體驗比對。
+
+---
+
+## 優先分數怎麼算
+
+- **每個弱點**：`風險 = (VPR ÷ 10) × EPSS`（同時考量「影響程度」與「被利用機率」，範圍 0~1）。
+- **每台主機優先分數**：`Σ（該主機所有弱點的風險）`。分數越高＝該主機累積的「緊急曝險」越大，越該先處理。
+- **緊急**欄：同時滿足 `VPR ≥ 7` 且 `EPSS ≥ 50%` 的弱點數（門檻可於四象限圖調整）。
+- 若整份資料**沒有 EPSS**，優先分數自動降級為以 `Critical/High 數 + VPR + 弱點量` 排序，仍可運作。
+
+---
+
+## 資安設計（Electron 安全基線）
+
+- `contextIsolation: true`、`nodeIntegration: false`、`sandbox: true`、`webSecurity: true`
+- 嚴格 CSP：`default-src 'none'; script-src 'self'; connect-src 'none'`（完全離線、無外連、無注入腳本執行）
+- 封鎖對外導覽與開新視窗（僅報表預覽的 `about:blank` 放行，外部連結交系統瀏覽器）
+- `preload` 僅以 `contextBridge` 暴露**單一**「另存檔案」API，主行程二次驗證（副檔名白名單、檔名清理、路徑由原生對話框決定，防路徑穿越）
+- 顯示層一律用 `textContent` / DOM 建立寫入，報表字串一律 `escapeXml`，杜絕 XSS
+- **CSV 匯出防公式注入**：以 `= + - @` 等開頭的儲存格自動前置 `'`
+- 不做任何持久化、不連線、不外傳
+
+---
+
+## 記憶體與大資料量
+
+- Electron 記憶體佔用天生高於純瀏覽器；本專案將核心放在**精簡 renderer**（vanilla JS + 自繪 SVG、執行期零相依），並：
+  - 差異表**虛擬捲動**：無論 10 萬列只渲染畫面可見的約 30 列。
+  - 只保留比對/評分/報表所需欄位（不留大型描述文字），降低每列記憶體。
+  - 四象限圖限制最多 800 個資料點（取風險最高者），報表明細上限 3000 列。
+  - Log 環狀上限 5000 筆。
+- 實測：兩份各 5 萬列（共 10 萬弱點）解析約 0.5 秒、比對約 0.45 秒，heap 約 130MB。
+- 用完可按「**清除資料（釋放記憶體）**」；關閉視窗行程結束，作業系統回收全部記憶體。
+
+---
+
+## 專案結構
+
+```
+nessus-report/
+├─ main.js              Electron 主行程（安全外殼 + 另存檔案 IPC）
+├─ preload.js           contextBridge 最小 API
+├─ renderer/
+│  ├─ index.html        UI 結構 + 嚴格 CSP
+│  ├─ styles.css        深色、精簡樣式（無外部資源）
+│  ├─ core.js           純邏輯：解析 / 欄位對應 / diff / 統計 / 優先分數（瀏覽器與測試共用）
+│  └─ app.js            renderer：UI、虛擬表格、SVG 圖表、報表、Log、匯出
+├─ samples/             範例 CSV（基準 / 當前）
+├─ test/run-tests.js    核心邏輯測試（Node，零相依）
+└─ package.json
+```
+
+## 測試
+
+```bash
+npm test      # 48 項核心邏輯測試（解析 / 欄位 / diff / 統計 / 優先分數 / 防注入）
+```
+
+---
+
+## 授權
+
+MIT

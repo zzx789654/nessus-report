@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <!--
+    嚴格 CSP：純本機、無外連。
+    script-src 'self' → 只跑本專案 JS，杜絕注入腳本執行（防 XSS 落地）。
+    connect-src 'none' → 任何 fetch/XHR/WebSocket 皆被擋（確保完全離線）。
+  -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nessus Diff — 弱點掃描比對工具</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- 頂部列 -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">🛡️</span>
+        <div class="brand-text">
+          <h1>Nessus Diff</h1>
+          <p>離線弱點掃描比對 · 以 IP 為主 Key · EPSS/VPR 優先處理</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <span id="mem-hint" class="mem-hint" title="所有資料僅存於記憶體，關閉即釋放">🔒 離線 · 不記憶</span>
+        <button id="btn-sample" class="btn btn-ghost" type="button">下載範例 CSV</button>
+        <button id="btn-clear" class="btn btn-danger" type="button" disabled>清除資料（釋放記憶體）</button>
+      </div>
+    </header>
+
+    <!-- 匯入區 -->
+    <section id="import-section" class="import-section">
+      <div class="dropzones">
+        <div class="dropzone" id="dz-old" data-slot="old" tabindex="0" role="button" aria-label="匯入基準（舊）掃描 CSV">
+          <div class="dz-icon" aria-hidden="true">📥</div>
+          <div class="dz-title">基準掃描（舊）</div>
+          <div class="dz-sub">拖放或點擊選擇 Nessus CSV</div>
+          <div class="dz-file" data-role="filename"></div>
+        </div>
+        <div class="dz-arrow" aria-hidden="true">→</div>
+        <div class="dropzone" id="dz-new" data-slot="new" tabindex="0" role="button" aria-label="匯入當前（新）掃描 CSV">
+          <div class="dz-icon" aria-hidden="true">📥</div>
+          <div class="dz-title">當前掃描（新）</div>
+          <div class="dz-sub">拖放或點擊選擇 Nessus CSV</div>
+          <div class="dz-file" data-role="filename"></div>
+        </div>
+      </div>
+      <div id="import-msg" class="import-msg" role="status" aria-live="polite"></div>
+      <input type="file" id="file-input" accept=".csv,text/csv" hidden />
+    </section>
+
+    <!-- 分頁導覽 -->
+    <nav class="tabs" role="tablist" aria-label="功能分頁">
+      <button class="tab active" data-tab="overview" role="tab" type="button">總覽</button>
+      <button class="tab" data-tab="diff" role="tab" type="button">差異比對</button>
+      <button class="tab" data-tab="charts" role="tab" type="button">風險圖表</button>
+      <button class="tab" data-tab="priority" role="tab" type="button">優先主機</button>
+      <button class="tab" data-tab="report" role="tab" type="button">報表匯出</button>
+      <button class="tab" data-tab="log" role="tab" type="button">執行 Log <span id="log-badge" class="badge" hidden>0</span></button>
+    </nav>
+
+    <main class="content">
+      <!-- 總覽 -->
+      <section id="tab-overview" class="tabpane active" role="tabpanel">
+        <div id="overview-empty" class="empty-state">
+          <div class="empty-icon" aria-hidden="true">📊</div>
+          <h2>尚未載入資料</h2>
+          <p>請於上方匯入「基準掃描」與「當前掃描」兩份 Nessus CSV，即可開始比對。</p>
+          <p class="empty-sub">只匯入一份也能檢視該份的統計與圖表。</p>
+        </div>
+        <div id="overview-body" hidden>
+          <div class="stat-grid" id="stat-grid"><!-- KPI 卡由 JS 產生 --></div>
+          <div class="overview-cols">
+            <div class="panel">
+              <h3>嚴重度分佈（基準 vs 當前）</h3>
+              <div id="chart-severity" class="chart-holder"></div>
+            </div>
+            <div class="panel">
+              <h3>差異總覽</h3>
+              <div id="chart-diff" class="chart-holder"></div>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>最需優先處理的主機（Top 10）</h3>
+            <p class="panel-hint">優先分數 = Σ（VPR ÷ 10 × EPSS）。同時具「高可利用性(EPSS)」與「高影響(VPR)」的主機分數最高。</p>
+            <div id="overview-priority" class="mini-table"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 差異比對 -->
+      <section id="tab-diff" class="tabpane" role="tabpanel">
+        <div class="toolbar">
+          <div class="filters">
+            <input type="search" id="f-search" class="input" placeholder="搜尋 主機 / 名稱 / CVE / Plugin ID…" autocomplete="off" />
+            <select id="f-status" class="input" aria-label="依差異狀態篩選">
+              <option value="">全部狀態</option>
+              <option value="added">🔴 新增</option>
+              <option value="removed">🟢 已修復</option>
+              <option value="persistent">⚪ 持續存在</option>
+              <option value="changed">🟡 有變更</option>
+            </select>
+            <select id="f-risk" class="input" aria-label="依嚴重度篩選">
+              <option value="">全部嚴重度</option>
+              <option value="Critical">Critical</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+              <option value="Info">Info / None</option>
+            </select>
+            <label class="minlabel">VPR ≥ <input type="number" id="f-vpr" class="input input-num" min="0" max="10" step="0.1" placeholder="0" /></label>
+            <label class="minlabel">EPSS ≥ <input type="number" id="f-epss" class="input input-num" min="0" max="1" step="0.01" placeholder="0" /></label>
+            <button id="f-reset" class="btn btn-ghost" type="button">重設</button>
+          </div>
+          <div class="toolbar-right">
+            <span id="diff-count" class="result-count">—</span>
+            <button id="btn-export-csv" class="btn btn-ghost" type="button">匯出目前結果 CSV</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="vtable" id="vtable" role="table" aria-label="差異比對結果">
+            <div class="vthead" id="vthead" role="row"><!-- 表頭由 JS 產生 --></div>
+            <div class="vviewport" id="vviewport" role="rowgroup">
+              <div class="vspacer" id="vspacer"></div>
+              <div class="vrows" id="vrows"></div>
+            </div>
+          </div>
+          <div id="diff-empty" class="empty-state small" hidden>沒有符合條件的資料。</div>
+        </div>
+      </section>
+
+      <!-- 風險圖表 -->
+      <section id="tab-charts" class="tabpane" role="tabpanel">
+        <div class="panel">
+          <h3>EPSS × VPR 優先處理四象限</h3>
+          <p class="panel-hint">
+            橫軸 = EPSS（未來 30 天被實際利用的機率），縱軸 = VPR（Tenable 漏洞優先分數）。
+            <b>右上角（高 EPSS + 高 VPR）= 最該先修</b>。點的顏色代表嚴重度，形狀代表本次為新增或持續。
+          </p>
+          <div class="quadrant-controls">
+            <label>EPSS 門檻 <input type="number" id="q-epss" class="input input-num" min="0" max="1" step="0.05" value="0.5" /></label>
+            <label>VPR 門檻 <input type="number" id="q-vpr" class="input input-num" min="0" max="10" step="0.5" value="7" /></label>
+            <label class="chk"><input type="checkbox" id="q-added-only" /> 只看本次新增</label>
+          </div>
+          <div id="chart-quadrant" class="chart-holder tall"></div>
+        </div>
+        <div class="overview-cols">
+          <div class="panel">
+            <h3>嚴重度分佈（基準 vs 當前）</h3>
+            <div id="chart-severity2" class="chart-holder"></div>
+          </div>
+          <div class="panel">
+            <h3>Top 風險主機（依優先分數）</h3>
+            <div id="chart-tophosts" class="chart-holder"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 優先主機 -->
+      <section id="tab-priority" class="tabpane" role="tabpanel">
+        <div class="panel">
+          <h3>主機優先處理清單</h3>
+          <p class="panel-hint">依「優先分數」由高到低排序。點欄位標題可改變排序。優先分數 = Σ（VPR ÷ 10 × EPSS）。</p>
+          <div id="priority-table" class="mini-table"></div>
+        </div>
+      </section>
+
+      <!-- 報表匯出 -->
+      <section id="tab-report" class="tabpane" role="tabpanel">
+        <div class="panel">
+          <h3>產出報表</h3>
+          <p class="panel-hint">依實務常見需求，可勾選要納入的內容。報表為單一 HTML 檔（含內嵌圖表），可離線開啟或列印成 PDF。</p>
+          <div class="report-opts">
+            <label class="chk"><input type="checkbox" id="r-exec" checked /> 執行摘要（KPI + 差異總結）</label>
+            <label class="chk"><input type="checkbox" id="r-severity" checked /> 嚴重度分佈對比圖</label>
+            <label class="chk"><input type="checkbox" id="r-diffchart" checked /> 差異總覽圖</label>
+            <label class="chk"><input type="checkbox" id="r-quadrant" checked /> EPSS×VPR 四象限圖</label>
+            <label class="chk"><input type="checkbox" id="r-priority" checked /> 優先處理主機表（Top 20）</label>
+            <label class="chk"><input type="checkbox" id="r-findings" checked /> 明細表</label>
+            <label class="chk sub"><input type="checkbox" id="r-findings-filter" /> 明細僅納入目前「差異比對」分頁的篩選結果</label>
+            <label class="chk sub"><input type="checkbox" id="r-findings-highonly" checked /> 明細僅納入 Critical / High</label>
+          </div>
+          <div class="report-meta">
+            <label>報表標題 <input type="text" id="r-title" class="input input-wide" value="Nessus 弱點掃描比對報告" /></label>
+            <label>單位 / 專案 <input type="text" id="r-org" class="input input-wide" placeholder="（選填）" /></label>
+          </div>
+          <div class="report-actions">
+            <button id="btn-report" class="btn btn-primary" type="button">產出 HTML 報表</button>
+            <button id="btn-report-preview" class="btn btn-ghost" type="button">預覽</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Log -->
+      <section id="tab-log" class="tabpane" role="tabpanel">
+        <div class="panel">
+          <div class="log-toolbar">
+            <h3>執行 Log</h3>
+            <div class="log-controls">
+              <select id="log-level" class="input" aria-label="Log 等級篩選">
+                <option value="ALL">全部</option>
+                <option value="DEBUG">DEBUG 以上</option>
+                <option value="INFO" selected>INFO 以上</option>
+                <option value="WARN">WARN 以上</option>
+                <option value="ERROR">僅 ERROR</option>
+              </select>
+              <button id="btn-log-export" class="btn btn-ghost" type="button">匯出 Log</button>
+              <button id="btn-log-clear" class="btn btn-ghost" type="button">清空</button>
+            </div>
+          </div>
+          <div id="log-view" class="log-view" role="log" aria-live="polite"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 忙碌遮罩 -->
+    <div id="busy" class="busy" hidden>
+      <div class="busy-box">
+        <div class="spinner" aria-hidden="true"></div>
+        <div id="busy-text">處理中…</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="core.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

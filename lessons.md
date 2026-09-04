@@ -1,0 +1,23 @@
+# lessons — Secure SDLC 輪結與教訓
+
+## [2026-09-04] 輪結 Round 1 — Nessus Diff 建置（v1.0.0）
+
+- 現況：已過 G1~G4；G5/G6（CI/CD 自動化）留待後續（本輪以本機驗證與 push 分支交付）。下一步 = 使用者驗收，需要時補 GitHub Actions。
+- PM：主題＝「兩份 Nessus 掃描以 IP 為 Key 比對 + EPSS/VPR 優先處理」，寫入 `CoreMain.md`。使用者選 Electron；資安分析師註記「Electron 記憶體張力」，對策＝精簡純前端 renderer 當核心、Electron 只當離線安全外殼。Exit Criteria 三維度定義完成。
+- Dev/Sec：實作 Electron 安全外殼 + 純前端 renderer；弱點 Critical 0 / High 0（自審：Electron 安全基線全開、CSP `connect-src none`、XSS 全用 textContent/escapeXml、CSV 防公式注入、IPC 輸入驗證、無 prototype pollution 因 key 皆固定集合或以 Map 承載）。執行期零外部相依。
+- QA：核心邏輯 48 項單元測試全過；Playwright 端對端（載入→匯入兩份→總覽/差異/圖表/優先/Log/清除）0 console 錯誤；報表產出驗證通過；5 萬×2 列效能 ~0.5s 解析、~0.45s 比對、heap ~130MB。
+- 過關狀態：G1 ✓ / G2 ✓ / G3 ✓ / G4 ✓ / G5 － / G6 －
+
+### 教訓 / 準則
+- 情境：需求含「桌面 App」又要「低記憶體」時。
+  準則：把核心做成**框架無關的純前端 + 自繪 SVG**，桌面殼（Electron）只負責安全與檔案 IO；核心同時能瀏覽器直開，兼顧體驗、記憶體與可攜性。
+- 情境：要對「含 DOM 的前端邏輯」寫可自動化測試時。
+  準則：把**純邏輯抽成無 DOM 的 core 模組**（UMD 匯出），瀏覽器與 Node 測試共用同一份，測試才真正涵蓋出貨程式碼。
+- 情境：優先分數/圖表依賴 EPSS、VPR，但 Nessus 匯出未必都有。
+  準則：一律設計**降級路徑**（缺 EPSS 改嚴重度+VPR 排序、缺 Risk 由 CVSS 推導），並於 Log 明確警示，不讓缺欄位造成崩潰。
+- 情境：Electron 封鎖開新視窗會讓「報表預覽」失效。
+  準則：`setWindowOpenHandler` 只放行自產、已 escape 的 `about:blank` 內容視窗，外部網址導向系統瀏覽器，兼顧安全與功能。
+- 情境：大資料量表格。
+  準則：**虛擬捲動**（只渲染可見列）+ 圖表資料點上限 + 只存必要欄位，是同時顧到「可用」與「低記憶體」的關鍵。
+- 情境：任何要顯示或匯出使用者提供的 CSV 內容。
+  準則：顯示一律 textContent、報表一律 escapeXml、CSV 匯出一律防公式注入（`= + - @` 前置 `'`）——三者缺一都可能被弱點報告內容反殺。
