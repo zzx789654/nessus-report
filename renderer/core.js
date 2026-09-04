@@ -97,6 +97,13 @@
     return 'Info';
   }
 
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  // EPSS 應為 0~1 機率；若匯出成百分比（如 97% → 97、或 0~100 尺度）自動換算，並夾到 [0,1]。
+  // 這同時避免髒值汙染優先分數與四象限座標（否則會飛出畫面被裁掉、辨識困難）。
+  function normEpss(v) { if (v == null) return null; if (v > 1) v = v / 100; return clamp(v, 0, 1); }
+  // VPR 域為 0~10，夾範圍避免異常值使圖表座標溢出。
+  function normVpr(v) { if (v == null) return null; return clamp(v, 0, 10); }
+
   function normalize(rawRows, map) {
     const recs = [];
     let skipped = 0;
@@ -106,7 +113,8 @@
       const host = String(get(r, 'host')).trim();
       const pid = String(get(r, 'pluginId')).trim();
       if (!host || !pid) { skipped++; continue; }
-      const cvss = num(get(r, 'cvss3')) != null ? num(get(r, 'cvss3')) : num(get(r, 'cvss2'));
+      let cvss = num(get(r, 'cvss3')) != null ? num(get(r, 'cvss3')) : num(get(r, 'cvss2'));
+      if (cvss != null) cvss = clamp(cvss, 0, 10);
       const risk = normRisk(get(r, 'risk'), cvss);
       recs.push({
         host, pluginId: pid,
@@ -115,7 +123,7 @@
         cve: String(get(r, 'cve')).trim(),
         port: String(get(r, 'port')).trim(),
         protocol: String(get(r, 'protocol')).trim().toLowerCase(),
-        cvss, vpr: num(get(r, 'vpr')), epss: num(get(r, 'epss'))
+        cvss, vpr: normVpr(num(get(r, 'vpr'))), epss: normEpss(num(get(r, 'epss')))
       });
     }
     return { recs, skipped };
@@ -261,7 +269,7 @@
 
   return {
     escapeXml, num, parseCSV, COLDEF, REQUIRED, mapColumns, RISK_LEVEL,
-    normRisk, normalize, findingKey, csvCell, buildIndex, mkRow,
+    normRisk, normEpss, normVpr, clamp, normalize, findingKey, csvCell, buildIndex, mkRow,
     computeRows, severityCounts, computeStats, computeHostPriority,
     subnetOf, computeSubnetAggregation
   };

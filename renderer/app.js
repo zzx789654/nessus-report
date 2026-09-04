@@ -245,11 +245,14 @@
     let capped = false;
     if (pts.length > MAXPTS) { pts.sort((a, b) => b.w - a.w); pts = pts.slice(0, MAXPTS); capped = true; }
 
+    // 防禦性夾範圍：門檻與座標一律限制在定義域內，避免任何殘留異常值使點/線跑出畫面被裁掉
+    epssThresh = Math.max(0, Math.min(1, epssThresh));
+    vprThresh = Math.max(0, Math.min(10, vprThresh));
     const W = 600, H = 420, pad = { l: 48, r: 20, t: 20, b: 44 };
     const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'xMidYMid meet', role: 'img' });
     const plotW = W - pad.l - pad.r, plotH = H - pad.t - pad.b;
-    const X = v => pad.l + v * plotW;                 // EPSS 0..1
-    const Y = v => pad.t + plotH - (v / 10) * plotH;  // VPR 0..10
+    const X = v => pad.l + Math.max(0, Math.min(1, v)) * plotW;                 // EPSS 0..1（夾範圍）
+    const Y = v => pad.t + plotH - (Math.max(0, Math.min(10, v)) / 10) * plotH;  // VPR 0..10（夾範圍）
     // 象限背景（右上=優先）
     svg.appendChild(svgEl('rect', { x: X(epssThresh), y: pad.t, width: X(1) - X(epssThresh), height: Y(vprThresh) - pad.t, fill: 'rgba(255,77,109,0.08)' }));
     // 格線

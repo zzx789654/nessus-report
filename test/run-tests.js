@@ -131,6 +131,25 @@ console.log('\n[7] 缺 VPR/EPSS 降級（優先分數不為全 0）');
   eq('高風險主機優先', pr[0].host, '1.1.1.1');
 })();
 
+console.log('\n[9] EPSS/VPR 正規化與夾範圍（防圖表座標溢出）');
+(function () {
+  eq('EPSS 0.97 不變', C.normEpss(0.97), 0.97);
+  eq('EPSS 97(%)→0.97', C.normEpss(97), 0.97);
+  eq('EPSS 5 → 0.05', C.normEpss(5), 0.05);
+  eq('EPSS >100 夾到 1', C.normEpss(250), 1);
+  eq('EPSS 負值夾到 0', C.normEpss(-3), 0);
+  eq('EPSS null 維持', C.normEpss(null), null);
+  eq('VPR 8.5 不變', C.normVpr(8.5), 8.5);
+  eq('VPR 99 夾到 10', C.normVpr(99), 10);
+  eq('VPR 負值夾到 0', C.normVpr(-1), 0);
+  // 端對端：髒 CSV（EPSS 百分比、VPR 超界）→ 正規化後在域內
+  const raw = C.parseCSV('Host,Plugin ID,Risk,VPR Score,EPSS Score\n1.1.1.1,10,Critical,99,97%\n1.1.1.1,11,High,-2,1.5\n');
+  const { recs } = C.normalize(raw, C.mapColumns(raw[0]));
+  ok('EPSS 全在 [0,1]', recs.every(r => r.epss >= 0 && r.epss <= 1), JSON.stringify(recs.map(r => r.epss)));
+  ok('VPR 全在 [0,10]', recs.every(r => r.vpr >= 0 && r.vpr <= 10), JSON.stringify(recs.map(r => r.vpr)));
+  eq('百分比 EPSS 換算正確', recs[0].epss, 0.97);
+})();
+
 console.log('\n[8] 網段彙總（300+ IP 收斂）');
 (function () {
   eq('IPv4 /24', C.subnetOf('10.0.5.23'), '10.0.5.0/24');
