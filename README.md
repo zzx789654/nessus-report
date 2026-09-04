@@ -13,7 +13,7 @@
 | 每次開啟重新匯入、不記憶 | 不使用任何 localStorage / IndexedDB / 檔案快取，資料僅存記憶體；關窗即釋放，另有「清除資料」按鈕 |
 | 以 IP 為主 Key 的 CSV 比對 | 以 `Host` 分組，finding key = `Plugin ID + Port + Protocol`；標記**新增 / 已修復 / 持續 / 變更** |
 | 快速篩選與排序 | 關鍵字（主機/名稱/CVE/Plugin ID）、狀態、嚴重度、VPR≥、EPSS≥；點欄位標題排序 |
-| 風險圖表（EPSS / VPR） | **EPSS × VPR 四象限**（右上=最優先）、嚴重度分佈對比、差異總覽、Top 風險主機 |
+| 風險圖表（CVSS / EPSS / VPR） | **四象限**：縱軸固定 CVSS v2.0、橫軸可切 EPSS 或 VPR（右上=最優先），可切「一點=弱點 / 一點=主機」；另有嚴重度分佈對比、差異總覽、Top 風險主機、主機風險熱力圖 |
 | 漏洞總數統計 | KPI 卡：總數、各嚴重度、主機數、新增/修復、新增 CVE 數 + 增減量 |
 | 執行 Log | 分級（DEBUG/INFO/WARN/ERROR）、攔截未捕捉錯誤、可匯出 `.log` |
 | 報表產出 | 單一 HTML 報表（內嵌 SVG 圖表），可勾選內容、可只納入 Critical/High、可套用目前篩選 |
@@ -56,8 +56,9 @@ Nessus 匯出的 CSV（Export → CSV）常見欄位如下。本工具**以表�
 | `Risk` | `Severity`, `Risk Factor` | 改由 CVSS 分數推導嚴重度 |
 | `Name` | `Plugin Name` | 以 `Plugin <ID>` 代替 |
 | `Port` / `Protocol` | `Proto` | 影響 finding 唯一性（同主機不同 port 會併計） |
-| `VPR Score` | `VPR` | 四象限縱軸 / 優先分數缺該維度 |
-| `EPSS Score` | `EPSS` | 四象限橫軸 / 優先分數改用嚴重度+VPR 降級排序 |
+| `CVSS v2.0 Base Score` | — | 四象限縱軸（固定 v2.0）；整份缺 v2.0 時自動降級用 v3.0 |
+| `VPR Score` | `VPR` | 四象限橫軸選項之一 / 優先分數缺該維度 |
+| `EPSS Score` | `EPSS` | 四象限橫軸選項之一 / 優先分數改用嚴重度+VPR 降級排序 |
 | `CVE` | `CVEs` | 「新增 CVE 數」統計會變少 |
 | `CVSS v3.0 Base Score` / `CVSS v2.0 Base Score` | `CVSS` | 無 Risk 時無法推導嚴重度 |
 

@@ -113,8 +113,9 @@
       const host = String(get(r, 'host')).trim();
       const pid = String(get(r, 'pluginId')).trim();
       if (!host || !pid) { skipped++; continue; }
-      let cvss = num(get(r, 'cvss3')) != null ? num(get(r, 'cvss3')) : num(get(r, 'cvss2'));
-      if (cvss != null) cvss = clamp(cvss, 0, 10);
+      let cvss2 = num(get(r, 'cvss2')); if (cvss2 != null) cvss2 = clamp(cvss2, 0, 10);
+      let cvss3 = num(get(r, 'cvss3')); if (cvss3 != null) cvss3 = clamp(cvss3, 0, 10);
+      const cvss = (cvss3 != null) ? cvss3 : cvss2; // 合併值（風險推導用，v3 優先）
       const risk = normRisk(get(r, 'risk'), cvss);
       recs.push({
         host, pluginId: pid,
@@ -123,7 +124,7 @@
         cve: String(get(r, 'cve')).trim(),
         port: String(get(r, 'port')).trim(),
         protocol: String(get(r, 'protocol')).trim().toLowerCase(),
-        cvss, vpr: normVpr(num(get(r, 'vpr'))), epss: normEpss(num(get(r, 'epss')))
+        cvss, cvss2, cvss3, vpr: normVpr(num(get(r, 'vpr'))), epss: normEpss(num(get(r, 'epss')))
       });
     }
     return { recs, skipped };

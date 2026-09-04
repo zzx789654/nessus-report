@@ -124,7 +124,8 @@
     hostSort: { key: 'score', dir: -1 },
     hostFiltered: [],
     selectedHost: null,
-    qmode: 'finding'
+    qmode: 'finding',
+    qx: 'epss'   // 四象限橫軸：'epss' 或 'vpr'（縱軸固定 CVSS v2.0）
   };
 
   // ---------------------------------------------------------------------------
@@ -221,73 +222,101 @@
     return svg;
   }
 
-  function chartQuadrant(epssThresh, vprThresh, addedOnly, mode) {
-    let pts = [];
+  // 軸定義（定義域上限、標題、刻度格式、預設門檻）
+  const AXES = {
+    epss:  { max: 1,  label: 'EPSS（被利用機率）', tick: v => v.toFixed(1), th: 0.5 },
+    vpr:   { max: 10, label: 'VPR（漏洞優先分數）', tick: v => String(v), th: 7 },
+    cvss2: { max: 10, label: 'CVSS v2.0', tick: v => String(v), th: 7 },
+    cvss3: { max: 10, label: 'CVSS v3.0（v2.0 缺）', tick: v => String(v), th: 7 }
+  };
+
+  // 四象限：縱軸固定 CVSS v2.0（整份缺 v2.0 時降級用 v3.0），橫軸可切 EPSS / VPR。
+  // cfg = { xKey:'epss'|'vpr', xThresh, yThresh, addedOnly, mode:'finding'|'host' }
+  function chartQuadrant(cfg) {
+    cfg = cfg || {};
+    const xKey = (cfg.xKey === 'vpr') ? 'vpr' : 'epss';
+    const mode = (cfg.mode === 'host') ? 'host' : 'finding';
+    const addedOnly = !!cfg.addedOnly;
+    const recs = (S.new && S.new.recs.length) ? S.new.recs : (S.old ? S.old.recs : []);
+
+    // Y 軸：固定 CVSS v2.0；若整份都沒有 v2.0 才降級用 v3.0
+    const hasV2 = recs.some(r => r.cvss2 != null);
+    const yKey = hasV2 ? 'cvss2' : 'cvss3';
+    const xAx = AXES[xKey], yAx = AXES[yKey];
+    let xThresh = cfg.xThresh != null ? cfg.xThresh : xAx.th;
+    let yThresh = cfg.yThresh != null ? cfg.yThresh : 7;
+
+    let pts = [], missing = 0;
     if (mode === 'host') {
-      // 一點 = 一台主機（取該主機最高 VPR/EPSS）→ 300+ 主機時避免上千弱點點重疊
-      for (const h of S.hostPriority) {
-        if (!h.maxVpr || !h.maxEpss) continue;
-        if (addedOnly && !h.added) continue;
+      // 一點 = 一台主機（取該主機 x/y 的最大值）→ 大量主機時避免點重疊
+      const byHost = new Map();
+      const addedHosts = new Set(S.rows.filter(r => r.status === 'added').map(r => r.host));
+      for (const r of recs) {
+        const xv = r[xKey], yv = r[yKey];
+        if (xv == null || yv == null) continue;
+        let h = byHost.get(r.host);
+        if (!h) { h = { host: r.host, x: 0, y: 0, crit: 0, high: 0, count: 0 }; byHost.set(r.host, h); }
+        h.x = Math.max(h.x, xv); h.y = Math.max(h.y, yv); h.count++;
+        if (r.risk === 'Critical') h.crit++; else if (r.risk === 'High') h.high++;
+      }
+      for (const h of byHost.values()) {
+        if (addedOnly && !addedHosts.has(h.host)) continue;
         const risk = h.crit ? 'Critical' : (h.high ? 'High' : 'Medium');
-        pts.push({ x: h.maxEpss, y: h.maxVpr, risk, host: h.host, name: `${h.count} 筆弱點`, added: h.added > 0, w: h.score });
+        pts.push({ x: h.x, y: h.y, risk, host: h.host, name: `${h.count} 筆弱點`, added: addedHosts.has(h.host), w: (h.x / xAx.max) * (h.y / yAx.max) });
       }
     } else {
-      const recs = (S.new && S.new.recs.length) ? S.new.recs : (S.old ? S.old.recs : []);
       const addedKeys = new Set(S.rows.filter(r => r.status === 'added').map(r => r.host + '|' + findingKey(r)));
       for (const r of recs) {
-        if (r.vpr == null || r.epss == null) continue;
+        const xv = r[xKey], yv = r[yKey];
+        if (xv == null || yv == null) { missing++; continue; }
         const isAdded = addedKeys.has(r.host + '|' + findingKey(r));
         if (addedOnly && !isAdded) continue;
-        pts.push({ x: r.epss, y: r.vpr, risk: r.risk, host: r.host, name: r.name, added: isAdded, w: (r.vpr / 10) * r.epss });
+        pts.push({ x: xv, y: yv, risk: r.risk, host: r.host, name: r.name, added: isAdded, w: (xv / xAx.max) * (yv / yAx.max) });
       }
     }
     const MAXPTS = 800;
     let capped = false;
     if (pts.length > MAXPTS) { pts.sort((a, b) => b.w - a.w); pts = pts.slice(0, MAXPTS); capped = true; }
 
-    // 防禦性夾範圍：門檻與座標一律限制在定義域內，避免任何殘留異常值使點/線跑出畫面被裁掉
-    epssThresh = Math.max(0, Math.min(1, epssThresh));
-    vprThresh = Math.max(0, Math.min(10, vprThresh));
+    // 防禦性夾範圍：門檻與座標一律限制在定義域內，避免異常值使點/線跑出畫面被裁掉
+    xThresh = Math.max(0, Math.min(xAx.max, xThresh));
+    yThresh = Math.max(0, Math.min(yAx.max, yThresh));
     const W = 600, H = 420, pad = { l: 48, r: 20, t: 20, b: 44 };
     const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'xMidYMid meet', role: 'img' });
     const plotW = W - pad.l - pad.r, plotH = H - pad.t - pad.b;
-    const X = v => pad.l + Math.max(0, Math.min(1, v)) * plotW;                 // EPSS 0..1（夾範圍）
-    const Y = v => pad.t + plotH - (Math.max(0, Math.min(10, v)) / 10) * plotH;  // VPR 0..10（夾範圍）
+    const X = v => pad.l + (Math.max(0, Math.min(xAx.max, v)) / xAx.max) * plotW;
+    const Y = v => pad.t + plotH - (Math.max(0, Math.min(yAx.max, v)) / yAx.max) * plotH;
     // 象限背景（右上=優先）
-    svg.appendChild(svgEl('rect', { x: X(epssThresh), y: pad.t, width: X(1) - X(epssThresh), height: Y(vprThresh) - pad.t, fill: 'rgba(255,77,109,0.08)' }));
-    // 格線
+    svg.appendChild(svgEl('rect', { x: X(xThresh), y: pad.t, width: X(xAx.max) - X(xThresh), height: Y(yThresh) - pad.t, fill: 'rgba(255,77,109,0.08)' }));
+    // 格線 + Y 刻度
     for (let g = 0; g <= 5; g++) {
-      const vy = g * 2, yy = Y(vy);
+      const vy = yAx.max * g / 5, yy = Y(vy);
       svg.appendChild(svgEl('line', { x1: pad.l, y1: yy, x2: W - pad.r, y2: yy, class: 'grid-line' }));
-      svg.appendChild(svgEl('text', { x: pad.l - 6, y: yy + 3, 'text-anchor': 'end' }, vy));
+      svg.appendChild(svgEl('text', { x: pad.l - 6, y: yy + 3, 'text-anchor': 'end' }, yAx.tick(Math.round(vy * 10) / 10)));
     }
+    // X 刻度
     for (let g = 0; g <= 5; g++) {
-      const vx = g / 5, xx = X(vx);
-      svg.appendChild(svgEl('text', { x: xx, y: H - pad.b + 16, 'text-anchor': 'middle' }, vx.toFixed(1)));
+      const vx = xAx.max * g / 5, xx = X(vx);
+      svg.appendChild(svgEl('text', { x: xx, y: H - pad.b + 16, 'text-anchor': 'middle' }, xAx.tick(Math.round(vx * 100) / 100)));
     }
     // 門檻參考線
-    svg.appendChild(svgEl('line', { x1: X(epssThresh), y1: pad.t, x2: X(epssThresh), y2: pad.t + plotH, class: 'ref-line' }));
-    svg.appendChild(svgEl('line', { x1: pad.l, y1: Y(vprThresh), x2: W - pad.r, y2: Y(vprThresh), class: 'ref-line' }));
+    svg.appendChild(svgEl('line', { x1: X(xThresh), y1: pad.t, x2: X(xThresh), y2: pad.t + plotH, class: 'ref-line' }));
+    svg.appendChild(svgEl('line', { x1: pad.l, y1: Y(yThresh), x2: W - pad.r, y2: Y(yThresh), class: 'ref-line' }));
     // 點
     for (const p of pts) {
       const cx = X(p.x), cy = Y(p.y), color = RISK_COLORS[p.risk] || '#888';
       let node;
-      if (p.added) { // 新增 → 菱形
-        const s = 4;
-        node = svgEl('path', { d: `M${cx} ${cy - s}L${cx + s} ${cy}L${cx} ${cy + s}L${cx - s} ${cy}Z`, fill: color, opacity: 0.9 });
-      } else {
-        node = svgEl('circle', { cx, cy, r: 3.2, fill: color, opacity: 0.72 });
-      }
-      const title = svgEl('title', null, `${p.host} · ${p.name}\nVPR ${p.y} · EPSS ${p.x}`);
-      node.appendChild(title);
+      if (p.added) { const s = 4; node = svgEl('path', { d: `M${cx} ${cy - s}L${cx + s} ${cy}L${cx} ${cy + s}L${cx - s} ${cy}Z`, fill: color, opacity: 0.9 }); }
+      else { node = svgEl('circle', { cx, cy, r: 3.2, fill: color, opacity: 0.72 }); }
+      node.appendChild(svgEl('title', null, `${p.host} · ${p.name}\n${yAx.label} ${p.y} · ${xAx.label} ${p.x}`));
       svg.appendChild(node);
     }
     // 軸標題與象限標籤
-    svg.appendChild(svgEl('text', { x: pad.l + plotW / 2, y: H - 6, 'text-anchor': 'middle' }, 'EPSS（被利用機率）→'));
-    const yl = svgEl('text', { x: 12, y: pad.t + plotH / 2, 'text-anchor': 'middle', transform: `rotate(-90 12 ${pad.t + plotH / 2})` }, 'VPR（優先分數）→');
-    svg.appendChild(yl);
-    svg.appendChild(svgEl('text', { x: X(1) - 4, y: pad.t + 14, 'text-anchor': 'end', class: 'quad-label' }, '⚠ 優先處理'));
+    svg.appendChild(svgEl('text', { x: pad.l + plotW / 2, y: H - 6, 'text-anchor': 'middle' }, xAx.label + ' →'));
+    svg.appendChild(svgEl('text', { x: 12, y: pad.t + plotH / 2, 'text-anchor': 'middle', transform: `rotate(-90 12 ${pad.t + plotH / 2})` }, yAx.label + ' →'));
+    svg.appendChild(svgEl('text', { x: X(xAx.max) - 4, y: pad.t + 14, 'text-anchor': 'end', class: 'quad-label' }, '⚠ 優先處理'));
     if (capped) svg.appendChild(svgEl('text', { x: pad.l + 2, y: pad.t + 12, class: 'quad-label' }, `僅顯示風險最高的 ${MAXPTS} 點`));
+    if (missing > 0) svg.appendChild(svgEl('text', { x: pad.l + 2, y: pad.t + (capped ? 26 : 12), class: 'quad-label' }, `${missing} 筆缺 ${xAx.label}/${yAx.label} 未繪`));
     return svg;
   }
 
@@ -818,8 +847,8 @@
     if (opt.severity) body += `<h2>嚴重度分佈（基準 vs 當前）</h2><div class="chart">${serialize(chartSeverity(st.oldSev, st.newSev, st.mode))}</div>`;
     if (opt.diffchart && st.mode === 'diff') body += `<h2>差異總覽</h2><div class="chart">${serialize(chartDiff(st))}</div>`;
     if (opt.quadrant) {
-      const et = num($('#q-epss').value) ?? 0.5, vt = num($('#q-vpr').value) ?? 7;
-      body += `<h2>EPSS × VPR 優先處理四象限</h2><p class="note">右上角（高 EPSS + 高 VPR）為最該優先處理者。</p><div class="chart">${serialize(chartQuadrant(et, vt, false))}</div>`;
+      const xLabel = S.qx === 'vpr' ? 'VPR' : 'EPSS';
+      body += `<h2>CVSS ×（${xLabel}）優先處理四象限</h2><p class="note">縱軸＝CVSS v2.0，橫軸＝${xLabel}；右上角（高嚴重度＋高${xLabel}）為最該優先處理者。</p><div class="chart">${serialize(chartQuadrant({ xKey: S.qx, mode: S.qmode }))}</div>`;
     }
     if (opt.priority) {
       body += `<h2>優先處理主機（Top 20）</h2>` + priorityTableHTML(S.hostPriority.slice(0, 20));
@@ -1009,8 +1038,10 @@
   }
   function renderCharts() {
     if (!S.stats) return;
-    const et = num($('#q-epss').value) ?? 0.5, vt = num($('#q-vpr').value) ?? 7, ao = $('#q-added-only').checked;
-    $('#chart-quadrant').replaceChildren(chartQuadrant(et, vt, ao, S.qmode));
+    $('#chart-quadrant').replaceChildren(chartQuadrant({
+      xKey: S.qx, mode: S.qmode, addedOnly: $('#q-added-only').checked,
+      xThresh: num($('#q-xthresh').value), yThresh: num($('#q-ythresh').value)
+    }));
     $('#chart-heatmap').replaceChildren(chartHeatmap(S.hostPriority));
     $('#chart-severity2').replaceChildren(chartSeverity(S.stats.oldSev, S.stats.newSev, S.stats.mode));
     $('#chart-tophosts').replaceChildren(chartTopHosts(S.hostPriority));
@@ -1065,11 +1096,21 @@
     });
 
     // 圖表控制
-    ['#q-epss', '#q-vpr'].forEach(s => $(s).addEventListener('input', debounce(renderCharts, 200)));
+    ['#q-xthresh', '#q-ythresh'].forEach(s => $(s).addEventListener('input', debounce(renderCharts, 200)));
     $('#q-added-only').addEventListener('change', renderCharts);
-    $$('#tab-charts .viewtoggle .seg').forEach(b => b.addEventListener('click', () => {
+    // 聚合切換（弱點 / 主機）
+    $$('#tab-charts .viewtoggle .seg[data-qmode]').forEach(b => b.addEventListener('click', () => {
       S.qmode = b.dataset.qmode;
-      $$('#tab-charts .viewtoggle .seg').forEach(x => x.classList.toggle('active', x === b));
+      $$('#tab-charts .viewtoggle .seg[data-qmode]').forEach(x => x.classList.toggle('active', x === b));
+      renderCharts();
+    }));
+    // 橫軸切換（EPSS / VPR）→ 同步門檻輸入的範圍與預設值
+    $$('#tab-charts .viewtoggle .seg[data-qx]').forEach(b => b.addEventListener('click', () => {
+      S.qx = b.dataset.qx;
+      $$('#tab-charts .viewtoggle .seg[data-qx]').forEach(x => x.classList.toggle('active', x === b));
+      const xt = $('#q-xthresh');
+      if (S.qx === 'vpr') { xt.max = '10'; xt.step = '0.5'; xt.value = '7'; }
+      else { xt.max = '1'; xt.step = '0.05'; xt.value = '0.5'; }
       renderCharts();
     }));
 

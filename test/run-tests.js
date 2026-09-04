@@ -131,6 +131,17 @@ console.log('\n[7] 缺 VPR/EPSS 降級（優先分數不為全 0）');
   eq('高風險主機優先', pr[0].host, '1.1.1.1');
 })();
 
+console.log('\n[3b] CVSS v2.0 / v3.0 分開保留（四象限 Y 軸用）');
+(function () {
+  const raw = C.parseCSV('Host,Plugin ID,Risk,CVSS v2.0 Base Score,CVSS v3.0 Base Score\n1.1.1.1,10,High,7.5,9.8\n1.1.1.1,11,Medium,,6.4\n1.1.1.1,12,Critical,15,\n');
+  const { recs } = C.normalize(raw, C.mapColumns(raw[0]));
+  eq('cvss2 保留', recs[0].cvss2, 7.5);
+  eq('cvss3 保留', recs[0].cvss3, 9.8);
+  eq('缺 v2.0 → null', recs[1].cvss2, null);
+  eq('cvss2 超界夾到 10', recs[2].cvss2, 10);
+  eq('合併值 v3 優先', recs[0].cvss, 9.8);
+})();
+
 console.log('\n[9] EPSS/VPR 正規化與夾範圍（防圖表座標溢出）');
 (function () {
   eq('EPSS 0.97 不變', C.normEpss(0.97), 0.97);

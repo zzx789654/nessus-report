@@ -137,18 +137,22 @@
       <!-- 風險圖表 -->
       <section id="tab-charts" class="tabpane" role="tabpanel">
         <div class="panel">
-          <h3>EPSS × VPR 優先處理四象限</h3>
+          <h3>CVSS ×（EPSS / VPR）優先處理四象限</h3>
           <p class="panel-hint">
-            橫軸 = EPSS（未來 30 天被實際利用的機率），縱軸 = VPR（Tenable 漏洞優先分數）。
-            <b>右上角（高 EPSS + 高 VPR）= 最該先修</b>。點的顏色代表嚴重度，形狀代表本次為新增或持續。
+            縱軸固定為 <b>CVSS v2.0</b>（漏洞本質嚴重度）；橫軸可切換 <b>EPSS</b>（被實際利用機率）或 <b>VPR</b>（Tenable 優先分數）。
+            <b>右上角＝高嚴重度且高可利用性/高優先，最該先修</b>。顏色＝嚴重度，形狀＝本次新增（菱形）或持續（圓形）。
           </p>
           <div class="quadrant-controls">
             <div class="viewtoggle" role="tablist" aria-label="四象限聚合方式">
               <button type="button" class="seg active" data-qmode="finding">一點 = 弱點</button>
               <button type="button" class="seg" data-qmode="host">一點 = 主機</button>
             </div>
-            <label>EPSS 門檻 <input type="number" id="q-epss" class="input input-num" min="0" max="1" step="0.05" value="0.5" /></label>
-            <label>VPR 門檻 <input type="number" id="q-vpr" class="input input-num" min="0" max="10" step="0.5" value="7" /></label>
+            <div class="viewtoggle" role="tablist" aria-label="橫軸">
+              <button type="button" class="seg active" data-qx="epss">橫軸 = EPSS</button>
+              <button type="button" class="seg" data-qx="vpr">橫軸 = VPR</button>
+            </div>
+            <label>橫軸門檻 <input type="number" id="q-xthresh" class="input input-num" min="0" max="1" step="0.05" value="0.5" /></label>
+            <label>CVSS 門檻 <input type="number" id="q-ythresh" class="input input-num" min="0" max="10" step="0.5" value="7" /></label>
             <label class="chk"><input type="checkbox" id="q-added-only" /> 只看本次新增</label>
           </div>
           <div id="chart-quadrant" class="chart-holder tall"></div>

@@ -1,6 +1,6 @@
 {
   "name": "nessus-diff",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "完全離線的 Nessus 弱點掃描 CSV 比對工具（以 IP 為主 Key 的 diff、EPSS/VPR 優先處理圖表、報表匯出）。",
   "main": "main.js",
   "scripts": {
