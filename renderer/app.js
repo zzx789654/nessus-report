@@ -324,7 +324,7 @@
         if (xv == null || yv == null) { missing++; continue; }
         const isAdded = addedKeys.has(r.host + '|' + findingKey(r));
         if (addedOnly && !isAdded) continue;
-        pts.push({ x: xv, y: yv, risk: r.risk, host: r.host, name: r.name, added: isAdded, w: (xv / xAx.max) * (yv / yAx.max) });
+        pts.push({ x: xv, y: yv, risk: r.risk, host: r.host, name: r.name, cve: r.cve, added: isAdded, w: (xv / xAx.max) * (yv / yAx.max) });
       }
     }
     const MAXPTS = 800;
@@ -361,7 +361,8 @@
       let node;
       if (p.added) { const s = 4; node = svgEl('path', { d: `M${cx} ${cy - s}L${cx + s} ${cy}L${cx} ${cy + s}L${cx - s} ${cy}Z`, fill: color, opacity: 0.9 }); }
       else { node = svgEl('circle', { cx, cy, r: 3.2, fill: color, opacity: 0.72 }); }
-      node.appendChild(svgEl('title', null, `${p.host} · ${p.name}\n${yAx.label} ${p.y} · ${xAx.label} ${p.x}`));
+      const cveLine = p.cve ? `\nCVE: ${p.cve}` : '';
+      node.appendChild(svgEl('title', null, `${p.host} · ${p.name}${cveLine}\n${yAx.label} ${p.y} · ${xAx.label} ${p.x}`));
       svg.appendChild(node);
     }
     // 軸標題與象限標籤
