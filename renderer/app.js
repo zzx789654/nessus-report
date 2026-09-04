@@ -204,6 +204,59 @@
     return svg;
   }
 
+  // 漏洞總數與各嚴重度比較（基準 vs 當前）— 分組長條，含數值與增減量
+  function chartTotalsCompare(st) {
+    const twoBars = st.mode === 'diff';
+    const cats = [
+      ['總數', st.oldTotal, st.newTotal, '#4f8cff'],
+      ['Critical', st.oldSev.Critical, st.newSev.Critical, RISK_COLORS.Critical],
+      ['High', st.oldSev.High, st.newSev.High, RISK_COLORS.High],
+      ['Medium', st.oldSev.Medium, st.newSev.Medium, RISK_COLORS.Medium],
+      ['Low', st.oldSev.Low, st.newSev.Low, RISK_COLORS.Low],
+      ['Info', st.oldSev.Info, st.newSev.Info, RISK_COLORS.Info]
+    ];
+    const W = 640, H = 320, pad = { l: 44, r: 16, t: 24, b: 52 };
+    const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'xMidYMid meet', role: 'img' });
+    const maxV = Math.max(1, ...cats.map(c => Math.max(c[1], c[2])));
+    const plotW = W - pad.l - pad.r, plotH = H - pad.t - pad.b;
+    const y = v => pad.t + plotH - (v / maxV) * plotH;
+    // Y 格線
+    for (let g = 0; g <= 4; g++) {
+      const val = Math.round(maxV * g / 4), yy = y(val);
+      svg.appendChild(svgEl('line', { x1: pad.l, y1: yy, x2: W - pad.r, y2: yy, class: 'grid-line' }));
+      svg.appendChild(svgEl('text', { x: pad.l - 6, y: yy + 3, 'text-anchor': 'end' }, val));
+    }
+    const groupW = plotW / cats.length;
+    const barW = twoBars ? groupW * 0.28 : groupW * 0.42;
+    cats.forEach((c, i) => {
+      const gx = pad.l + i * groupW + groupW / 2;
+      const ov = c[1], nv = c[2], color = c[3];
+      if (twoBars) {
+        svg.appendChild(svgEl('rect', { x: gx - barW - 3, y: y(ov), width: barW, height: pad.t + plotH - y(ov), fill: color, opacity: 0.42, rx: 2 }));
+        svg.appendChild(svgEl('text', { x: gx - barW / 2 - 3, y: y(ov) - 4, 'text-anchor': 'middle', class: 'bar-label' }, fmt(ov)));
+        svg.appendChild(svgEl('rect', { x: gx + 3, y: y(nv), width: barW, height: pad.t + plotH - y(nv), fill: color, rx: 2 }));
+        svg.appendChild(svgEl('text', { x: gx + barW / 2 + 3, y: y(nv) - 4, 'text-anchor': 'middle', class: 'bar-label' }, fmt(nv)));
+        // 增減量
+        const d = nv - ov;
+        const dtxt = d > 0 ? '▲+' + d : (d < 0 ? '▼' + d : '＝');
+        const dcolor = d > 0 ? '#ff6b81' : (d < 0 ? '#2dd4a7' : '#8892a8');
+        svg.appendChild(svgEl('text', { x: gx, y: H - pad.b + 30, 'text-anchor': 'middle', fill: dcolor, 'font-size': '10.5' }, dtxt));
+      } else {
+        svg.appendChild(svgEl('rect', { x: gx - barW / 2, y: y(nv), width: barW, height: pad.t + plotH - y(nv), fill: color, rx: 2 }));
+        svg.appendChild(svgEl('text', { x: gx, y: y(nv) - 4, 'text-anchor': 'middle', class: 'bar-label' }, fmt(nv)));
+      }
+      svg.appendChild(svgEl('text', { x: gx, y: H - pad.b + 16, 'text-anchor': 'middle' }, c[0]));
+    });
+    // 圖例
+    if (twoBars) {
+      svg.appendChild(svgEl('rect', { x: pad.l, y: 6, width: 10, height: 10, fill: '#888', opacity: 0.42 }));
+      svg.appendChild(svgEl('text', { x: pad.l + 14, y: 15 }, '基準'));
+      svg.appendChild(svgEl('rect', { x: pad.l + 60, y: 6, width: 10, height: 10, fill: '#888' }));
+      svg.appendChild(svgEl('text', { x: pad.l + 74, y: 15 }, '當前'));
+    }
+    return svg;
+  }
+
   function chartTopHosts(priority) {
     const top = priority.slice(0, 10);
     const W = 600, rowH = 26, H = Math.max(120, top.length * rowH + 40), pad = { l: 130, r: 40, t: 10, b: 20 };
@@ -844,7 +897,7 @@
           `新增 ${st.added} 筆、修復 ${st.removed} 筆、持續存在 ${st.persistent} 筆、屬性變更 ${st.changed} 筆。</p>`;
       }
     }
-    if (opt.severity) body += `<h2>嚴重度分佈（基準 vs 當前）</h2><div class="chart">${serialize(chartSeverity(st.oldSev, st.newSev, st.mode))}</div>`;
+    if (opt.severity) body += `<h2>漏洞總數與各嚴重度比較（基準 vs 當前）</h2><div class="chart">${serialize(chartTotalsCompare(st))}</div><div class="chart">${serialize(chartSeverity(st.oldSev, st.newSev, st.mode))}</div>`;
     if (opt.diffchart && st.mode === 'diff') body += `<h2>差異總覽</h2><div class="chart">${serialize(chartDiff(st))}</div>`;
     if (opt.quadrant) {
       const xLabel = S.qx === 'vpr' ? 'VPR' : 'EPSS';
@@ -1042,6 +1095,7 @@
       xKey: S.qx, mode: S.qmode, addedOnly: $('#q-added-only').checked,
       xThresh: num($('#q-xthresh').value), yThresh: num($('#q-ythresh').value)
     }));
+    $('#chart-totals').replaceChildren(chartTotalsCompare(S.stats));
     $('#chart-heatmap').replaceChildren(chartHeatmap(S.hostPriority));
     $('#chart-severity2').replaceChildren(chartSeverity(S.stats.oldSev, S.stats.newSev, S.stats.mode));
     $('#chart-tophosts').replaceChildren(chartTopHosts(S.hostPriority));
@@ -1056,7 +1110,7 @@
     $('#diff-empty').hidden = false;
     $('#hrows').replaceChildren(); $('#hspacer').style.height = '0px'; $('#hthead').replaceChildren();
     $('#host-detail').hidden = true; $('#host-detail').replaceChildren(); $('#h-count').textContent = '—';
-    ['#chart-quadrant', '#chart-heatmap', '#chart-severity2', '#chart-tophosts', '#subnet-mode', '#overview-priority', '#stat-grid'].forEach(s => { const el = $(s); if (el) el.replaceChildren(); });
+    ['#chart-quadrant', '#chart-totals', '#chart-heatmap', '#chart-severity2', '#chart-tophosts', '#subnet-mode', '#overview-priority', '#stat-grid'].forEach(s => { const el = $(s); if (el) el.replaceChildren(); });
     $('#btn-clear').disabled = true;
     toast('已清除所有資料，記憶體已釋放。', 'ok');
     Log.info('使用者清除所有資料（記憶體釋放）');
