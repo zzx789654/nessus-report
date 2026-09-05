@@ -98,27 +98,8 @@
       <section id="tab-diff" class="tabpane" role="tabpanel">
         <div class="toolbar">
           <div class="filters">
-            <input type="search" id="f-search" class="input" placeholder="搜尋 主機 / 名稱 / CVE / Plugin ID…" autocomplete="off" />
-            <select id="f-status" class="input" aria-label="依差異狀態篩選">
-              <option value="">全部狀態</option>
-              <option value="added">🔴 新增</option>
-              <option value="removed">🟢 已修復</option>
-              <option value="persistent">⚪ 持續存在</option>
-              <option value="changed">🟡 有變更</option>
-            </select>
-            <select id="f-risk" class="input" aria-label="依嚴重度篩選">
-              <option value="">全部嚴重度</option>
-              <option value="Critical">Critical</option>
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
-              <option value="Info">Info / None</option>
-            </select>
-            <label class="minlabel">VPR ≥ <input type="number" id="f-vpr" class="input input-num" min="0" max="10" step="0.1" placeholder="0" /></label>
-            <label class="minlabel">EPSS ≥ <input type="number" id="f-epss" class="input input-num" min="0" max="1" step="0.01" placeholder="0" /></label>
-            <label class="chk"><input type="checkbox" id="f-hideinfo" checked /> 隱藏 Info</label>
-            <label class="chk"><input type="checkbox" id="f-action" /> 只看需行動</label>
-            <button id="f-reset" class="btn btn-ghost" type="button">重設</button>
+            <span class="filter-hint">篩選：點各欄標題下方的「全部 ▾」下拉選單（可複選）。</span>
+            <button id="f-reset" class="btn btn-ghost" type="button">清除所有篩選</button>
           </div>
           <div class="toolbar-right">
             <span id="diff-count" class="result-count">—</span>
@@ -218,22 +199,12 @@
         <div class="panel">
           <div class="toolbar">
             <div class="filters">
-              <input type="search" id="d-search" class="input" placeholder="搜尋 CVE / 主機 / 名稱…" autocomplete="off" />
-              <select id="d-risk" class="input" aria-label="依嚴重度篩選">
-                <option value="">全部嚴重度</option>
-                <option value="Critical">Critical</option>
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
-                <option value="Info">Info / None</option>
-              </select>
-              <label class="minlabel">VPR ≥ <input type="number" id="d-vpr" class="input input-num" min="0" max="10" step="0.1" placeholder="0" /></label>
-              <label class="minlabel">EPSS ≥ <input type="number" id="d-epss" class="input input-num" min="0" max="1" step="0.01" placeholder="0" /></label>
-              <button id="d-reset" class="btn btn-ghost" type="button">重設</button>
+              <span class="filter-hint">篩選：點各欄標題下方的「全部 ▾」下拉選單（可複選）。</span>
+              <button id="d-reset" class="btn btn-ghost" type="button">清除所有篩選</button>
             </div>
             <span id="d-count" class="result-count">—</span>
           </div>
-          <p class="panel-hint">每個 <b>CVE</b> 一列（一個 plugin 涵蓋多個 CVE 會展開成多列）。資料來源依右上角<b>全域「資料來源」（基準 / 當前）</b>；可即時篩選、點欄位標題排序；<b>點列可展開完整說明與處理方式</b>。「處理方式」取自 Nessus 的 Solution 欄位。</p>
+          <p class="panel-hint">每個 <b>CVE</b> 一列（一個 plugin 涵蓋多個 CVE 會展開成多列）。資料來源依右上角<b>全域「資料來源」（基準 / 當前）</b>；<b>各欄標題下方可下拉複選篩選</b>、點欄位標題排序；<b>點列可展開完整說明與處理方式</b>。「處理方式」取自 Nessus 的 Solution 欄位。</p>
           <div class="vtable" id="dtable" role="table" aria-label="風險明細">
             <div class="vthead" id="dthead" role="row"></div>
             <div class="vviewport" id="dviewport" role="rowgroup">

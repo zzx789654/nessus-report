@@ -157,6 +157,7 @@ button { font-family: inherit; }
 /* 各欄標題篩選列（位於欄名下方，與欄位對齊）：下拉複選按鈕 */
 .vthead .thf { padding: 4px 6px 6px; border-top: 1px solid rgba(38,49,73,.6); min-width: 0; }
 .vthead .thf .cf-btn { width: 100%; min-width: 0; box-sizing: border-box; background: var(--bg-2); border: 1px solid var(--line); color: var(--text-dim); border-radius: 6px; padding: 3px 6px; font-size: 11.5px; cursor: pointer; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.filter-hint { font-size: 12.5px; color: var(--text-dim); }
 .vthead .thf .cf-btn:hover { color: var(--text); border-color: var(--accent); }
 .vthead .thf .cf-btn.active { color: var(--text); border-color: var(--accent); background: rgba(79,140,255,.12); }
 

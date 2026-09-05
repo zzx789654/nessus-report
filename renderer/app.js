@@ -128,6 +128,7 @@
     // 風險明細分頁（每個 CVE 一列）
     viewSource: 'new',   // 全域資料來源：'old'（基準）或 'new'（當前）；驅動風險圖表單一來源圖與風險明細
     detailSort: { key: 'risk', dir: -1 },
+    detailColFilters: {},   // 風險明細矩陣各欄標題的下拉複選篩選
     detailRows: [],
     detailFiltered: [],
     qmode: 'finding',
@@ -531,9 +532,9 @@
   }
 
   // 列出某欄可選項（依實際出現的值，固定/數值排序），空值/無值置於最後
-  function colOptions(c) {
+  function colOptions(c, rows) {
     const present = new Set();
-    for (const r of S.rows) for (const k of colKeysOf(c, r)) present.add(k);
+    for (const r of rows) for (const k of colKeysOf(c, r)) present.add(k);
     let ordered;
     if (c.key === 'status') ordered = ['added', 'removed', 'persistent', 'changed', 'single'];
     else if (c.key === 'risk') ordered = ['Critical', 'High', 'Medium', 'Low', 'Info'];
@@ -554,58 +555,55 @@
   function closeColMenu() { if (_colMenu) { _colMenu.remove(); _colMenu = null; document.removeEventListener('pointerdown', onColMenuOutside, true); } }
   function onColMenuOutside(e) { if (_colMenu && !_colMenu.contains(e.target) && !e.target.closest('.cf-btn')) closeColMenu(); }
 
-  function buildHeader() {
+  // 通用「矩陣標題 + 各欄下拉複選」建構器；由 cfg 描述某個矩陣（差異比對 / 風險明細共用）
+  //   cfg = { id, cols, headEl(), gridTemplate(), rows(), getState(), apply(), rebuild(),
+  //           sortActive(c), sortArrow(), onSort(c) }
+  function buildMatrixHeader(cfg) {
     closeColMenu();
-    const head = $('#vthead');
+    const head = cfg.headEl();
     head.replaceChildren();
-    head.style.gridTemplateColumns = gridTemplate();
+    head.style.gridTemplateColumns = cfg.gridTemplate();
+    const state = cfg.getState();
     // 第一列：可排序的欄位標題
-    for (const c of COLS) {
+    for (const c of cfg.cols) {
       const th = document.createElement('div');
       th.className = 'th';
-      const sel = S.colFilters[c.key];
+      const sel = state[c.key];
       const active = Array.isArray(sel) && sel.length > 0;
       if (active) th.classList.add('filtered');
       th.append(c.label);
-      if (S.sortKey === c.key) {
-        const a = document.createElement('span'); a.className = 'arrow'; a.textContent = S.sortDir > 0 ? '▲' : '▼';
-        th.appendChild(a);
-      }
+      if (cfg.sortActive(c)) { const a = document.createElement('span'); a.className = 'arrow'; a.textContent = cfg.sortArrow(); th.appendChild(a); }
       if (active) { const dot = document.createElement('span'); dot.className = 'thf-dot'; dot.title = '此欄已套用篩選'; th.appendChild(dot); }
-      th.addEventListener('click', () => {
-        if (S.sortKey === c.key) S.sortDir = -S.sortDir;
-        else { S.sortKey = c.key; S.sortDir = (c.type === 'num' || c.type === 'epss') ? -1 : 1; }
-        applyFilterSort();
-        buildHeader();
-      });
+      th.addEventListener('click', () => cfg.onSort(c));
       head.appendChild(th);
     }
     // 第二列：各欄下拉複選按鈕（grid 自動換到第二排，與上方欄位對齊）
-    for (const c of COLS) head.appendChild(makeColFilterCell(c));
+    for (const c of cfg.cols) head.appendChild(makeColFilterCell(cfg, c));
   }
 
-  function makeColFilterCell(c) {
+  function makeColFilterCell(cfg, c) {
     const cell = document.createElement('div');
     cell.className = 'thf';
     cell.addEventListener('click', e => e.stopPropagation()); // 不觸發上方標題排序
-    const sel = S.colFilters[c.key];
+    const sel = cfg.getState()[c.key];
     const n = Array.isArray(sel) ? sel.length : 0;
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'cf-btn' + (n ? ' active' : '');
     btn.textContent = n ? `${n} 項 ▾` : '全部 ▾';
     btn.title = n ? '已選 ' + n + ' 項，點擊調整' : '點擊選取要顯示的項目（可複選）';
-    btn.addEventListener('click', () => { if (_colMenu && _colMenu._key === c.key) closeColMenu(); else openColMenu(c, btn); });
+    const mkey = cfg.id + '/' + c.key;
+    btn.addEventListener('click', () => { if (_colMenu && _colMenu._key === mkey) closeColMenu(); else openColMenu(cfg, c, btn); });
     cell.appendChild(btn);
     return cell;
   }
 
-  function openColMenu(c, btn) {
+  function openColMenu(cfg, c, btn) {
     closeColMenu();
-    const opts = colOptions(c);
-    const selected = new Set(Array.isArray(S.colFilters[c.key]) ? S.colFilters[c.key] : []);
+    const opts = colOptions(c, cfg.rows());
+    const selected = new Set(Array.isArray(cfg.getState()[c.key]) ? cfg.getState()[c.key] : []);
     const menu = document.createElement('div');
-    menu.className = 'cf-menu'; menu._key = c.key;
+    menu.className = 'cf-menu'; menu._key = cfg.id + '/' + c.key;
     // 工具列：全選 / 清除
     const tools = document.createElement('div'); tools.className = 'cf-tools';
     const bAll = document.createElement('button'); bAll.type = 'button'; bAll.className = 'btn btn-ghost'; bAll.textContent = '全選';
@@ -624,15 +622,16 @@
     menu.appendChild(list);
 
     const apply = () => {
-      if (selected.size === 0) delete S.colFilters[c.key];
-      else S.colFilters[c.key] = Array.from(selected);
+      const st = cfg.getState();
+      if (selected.size === 0) delete st[c.key];
+      else st[c.key] = Array.from(selected);
       const nn = selected.size;
       btn.textContent = nn ? `${nn} 項 ▾` : '全部 ▾';
       btn.classList.toggle('active', nn > 0);
-      const idx = COLS.indexOf(c); const th = $('#vthead').children[idx];
+      const idx = cfg.cols.indexOf(c); const th = cfg.headEl().children[idx];
       if (th) th.classList.toggle('filtered', nn > 0);
       cnt.textContent = nn ? `已選 ${nn}/${opts.length}` : `共 ${opts.length} 項`;
-      applyFilterSort();
+      cfg.apply();
     };
     const renderList = () => {
       const q = search ? search.value.trim().toLowerCase() : '';
@@ -671,6 +670,37 @@
   // 表格捲動 / 視窗縮放時關閉選單（fixed 定位不隨捲動）
   window.addEventListener('resize', closeColMenu);
 
+  // 依 cfg 收集「有選取」的欄位篩選；欄內多鍵為 OR、跨欄為 AND
+  function activeColFilters(cfg) {
+    const state = cfg.getState(), arr = [];
+    for (const c of cfg.cols) { const sel = state[c.key]; if (Array.isArray(sel) && sel.length) arr.push({ c, set: new Set(sel) }); }
+    return arr;
+  }
+  function rowPassesColFilters(colF, r) {
+    for (const f of colF) {
+      const keys = colKeysOf(f.c, r);
+      let hit = false;
+      for (const k of keys) if (f.set.has(k)) { hit = true; break; }
+      if (!hit) return false;
+    }
+    return true;
+  }
+
+  // 差異比對矩陣的篩選設定
+  const diffFilterCfg = {
+    id: 'diff', cols: COLS,
+    headEl: () => $('#vthead'), gridTemplate: () => gridTemplate(),
+    rows: () => S.rows, getState: () => S.colFilters,
+    apply: () => applyFilterSort(),
+    sortActive: (c) => S.sortKey === c.key, sortArrow: () => S.sortDir > 0 ? '▲' : '▼',
+    onSort: (c) => {
+      if (S.sortKey === c.key) S.sortDir = -S.sortDir;
+      else { S.sortKey = c.key; S.sortDir = (c.type === 'num' || c.type === 'epss') ? -1 : 1; }
+      applyFilterSort(); buildHeader();
+    }
+  };
+  function buildHeader() { buildMatrixHeader(diffFilterCfg); }
+
   function sortRows(rows) {
     const key = S.sortKey, dir = S.sortDir;
     rows.sort((a, b) => {
@@ -685,42 +715,12 @@
     return rows;
   }
 
+  // 差異比對：僅由各欄標題的下拉複選篩選（欄內 OR、跨欄 AND），排序沿用點欄標題
   function applyFilterSort() {
-    const q = $('#f-search').value.trim().toLowerCase();
-    const fs = $('#f-status').value;
-    const fr = $('#f-risk').value;
-    const fvpr = num($('#f-vpr').value);
-    const fepss = num($('#f-epss').value);
-    const hideInfo = $('#f-hideinfo').checked;
-    const actionOnly = $('#f-action').checked;
-    // 各欄標題的下拉複選（僅取有選者）：欄內為 OR、跨欄為 AND
-    const colF = [];
-    for (const c of COLS) {
-      const sel = S.colFilters[c.key];
-      if (Array.isArray(sel) && sel.length) colF.push({ c, set: new Set(sel) });
-    }
+    const colF = activeColFilters(diffFilterCfg);
     const out = [];
-    for (const r of S.rows) {
-      if (hideInfo && r.riskLevel === 0) continue;                       // 收斂：隱藏 Info/None
-      if (actionOnly && !(r.status === 'added' || r.status === 'changed' || r.riskLevel >= 3)) continue; // 只看需行動
-      if (fs && r.status !== fs) continue;
-      if (fr) { if (fr === 'Info') { if (r.risk !== 'Info') continue; } else if (r.risk !== fr) continue; }
-      if (fvpr != null && (r.vpr == null || r.vpr < fvpr)) continue;
-      if (fepss != null && (r.epss == null || r.epss < fepss)) continue;
-      if (q && r._hay.indexOf(q) === -1) continue;                       // 用預建索引，省每鍵重算
-      // 逐欄標題複選篩選：該列在此欄的任一鍵命中所選集合即通過（欄內 OR），全部欄位皆須通過（跨欄 AND）
-      let keep = true;
-      for (const f of colF) {
-        const keys = colKeysOf(f.c, r);
-        let hit = false;
-        for (const k of keys) if (f.set.has(k)) { hit = true; break; }
-        if (!hit) { keep = false; break; }
-      }
-      if (!keep) continue;
-      out.push(r);
-    }
-    // 排序：非明確欄位時預設用 priority
-    if (S.sortKey === 'priority') sortRows(out); else sortRows(out);
+    for (const r of S.rows) if (rowPassesColFilters(colF, r)) out.push(r);
+    sortRows(out);
     S.filtered = out;
     $('#diff-count').textContent = `${fmt(out.length)} 筆（共 ${fmt(S.rows.length)}）`;
     renderVirtual();
@@ -879,33 +879,25 @@
     S.detailRows = out;
   }
 
-  function buildDetailHeader() {
-    const head = $('#dthead'); head.replaceChildren();
-    head.style.gridTemplateColumns = dgridTemplate();
-    for (const c of DCOLS) {
-      const th = document.createElement('div'); th.className = 'th'; th.textContent = c.label;
-      if (S.detailSort.key === c.key) { const a = document.createElement('span'); a.className = 'arrow'; a.textContent = S.detailSort.dir > 0 ? '▲' : '▼'; th.appendChild(a); }
-      th.addEventListener('click', () => {
-        if (S.detailSort.key === c.key) S.detailSort.dir = -S.detailSort.dir;
-        else { S.detailSort.key = c.key; S.detailSort.dir = (c.type === 'num' || c.type === 'epss') ? -1 : 1; }
-        applyDetailFilter(); buildDetailHeader();
-      });
-      head.appendChild(th);
+  // 風險明細矩陣的篩選設定（與差異比對共用同一套下拉複選機制）
+  const detailFilterCfg = {
+    id: 'detail', cols: DCOLS,
+    headEl: () => $('#dthead'), gridTemplate: () => dgridTemplate(),
+    rows: () => S.detailRows, getState: () => S.detailColFilters,
+    apply: () => applyDetailFilter(),
+    sortActive: (c) => S.detailSort.key === c.key, sortArrow: () => S.detailSort.dir > 0 ? '▲' : '▼',
+    onSort: (c) => {
+      if (S.detailSort.key === c.key) S.detailSort.dir = -S.detailSort.dir;
+      else { S.detailSort.key = c.key; S.detailSort.dir = (c.type === 'num' || c.type === 'epss') ? -1 : 1; }
+      applyDetailFilter(); buildDetailHeader();
     }
-  }
+  };
+  function buildDetailHeader() { buildMatrixHeader(detailFilterCfg); }
 
   function applyDetailFilter() {
-    const q = $('#d-search').value.trim().toLowerCase();
-    const fr = $('#d-risk').value;
-    const fvpr = num($('#d-vpr').value), fepss = num($('#d-epss').value);
+    const colF = activeColFilters(detailFilterCfg);
     const out = [];
-    for (const r of S.detailRows) {
-      if (fr) { if (fr === 'Info') { if (r.risk !== 'Info') continue; } else if (r.risk !== fr) continue; }
-      if (fvpr != null && (r.vpr == null || r.vpr < fvpr)) continue;
-      if (fepss != null && (r.epss == null || r.epss < fepss)) continue;
-      if (q && r._hay.indexOf(q) === -1) continue;
-      out.push(r);
-    }
+    for (const r of S.detailRows) if (rowPassesColFilters(colF, r)) out.push(r);
     const key = S.detailSort.key, dir = S.detailSort.dir;
     out.sort((a, b) => {
       let av = key === 'risk' ? a.riskLevel : a[key], bv = key === 'risk' ? b.riskLevel : b[key];
@@ -1500,14 +1492,9 @@
     $('#busy-cancel').addEventListener('click', () => { S.cancelImport = true; });
 
     // 篩選
-    $('#f-search').addEventListener('input', debounce(applyFilterSort, 180));
-    ['#f-status', '#f-risk'].forEach(s => $(s).addEventListener('change', applyFilterSort));
-    ['#f-vpr', '#f-epss'].forEach(s => $(s).addEventListener('input', debounce(applyFilterSort, 200)));
-    ['#f-hideinfo', '#f-action'].forEach(s => $(s).addEventListener('change', applyFilterSort));
+    // 差異比對：篩選全部改由各欄標題的下拉複選；此按鈕清空所有欄位篩選
     $('#f-reset').addEventListener('click', () => {
-      $('#f-search').value = ''; $('#f-status').value = ''; $('#f-risk').value = ''; $('#f-vpr').value = ''; $('#f-epss').value = '';
-      $('#f-hideinfo').checked = true; $('#f-action').checked = false;
-      S.colFilters = {};        // 一併清除各欄標題篩選
+      S.colFilters = {};
       applyFilterSort();
       buildHeader();            // 重建標題列以清空篩選控制項與標記
     });
@@ -1553,13 +1540,11 @@
     // 全域資料來源切換（基準/當前）
     $$('#src-toggle .seg').forEach(b => b.addEventListener('click', () => switchViewSource(b.dataset.view)));
 
-    // 風險明細分頁：篩選 / 排序（資料來源由全域控制）
-    $('#d-search').addEventListener('input', debounce(applyDetailFilter, 180));
-    ['#d-risk'].forEach(s => $(s).addEventListener('change', applyDetailFilter));
-    ['#d-vpr', '#d-epss'].forEach(s => $(s).addEventListener('input', debounce(applyDetailFilter, 200)));
+    // 風險明細分頁：篩選全部改由各欄標題的下拉複選；此按鈕清空所有欄位篩選
     $('#d-reset').addEventListener('click', () => {
-      $('#d-search').value = ''; $('#d-risk').value = ''; $('#d-vpr').value = ''; $('#d-epss').value = '';
+      S.detailColFilters = {};
       applyDetailFilter();
+      buildDetailHeader();
     });
 
     // 匯出
