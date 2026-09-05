@@ -28,6 +28,13 @@
   function fmt(n) { return (n == null || n === '') ? '—' : (typeof n === 'number' ? n.toLocaleString('en-US') : String(n)); }
   function debounce(fn, ms) { let t; return function () { clearTimeout(t); const a = arguments, c = this; t = setTimeout(() => fn.apply(c, a), ms); }; }
 
+  // 圖表用浮動提示（跟隨游標；比原生 SVG <title> 更即時可見）
+  let _tipEl = null;
+  function tipEl() { if (!_tipEl) { _tipEl = document.createElement('div'); _tipEl.className = 'chart-tip'; _tipEl.hidden = true; document.body.appendChild(_tipEl); } return _tipEl; }
+  function showTip(text, e) { const t = tipEl(); t.textContent = text; t.hidden = false; moveTip(e); }
+  function moveTip(e) { const t = tipEl(); if (t.hidden) return; const w = t.offsetWidth || 200; let x = e.clientX + 14, y = e.clientY + 14; if (x + w > window.innerWidth - 8) x = e.clientX - w - 14; t.style.left = x + 'px'; t.style.top = y + 'px'; }
+  function hideTip() { if (_tipEl) _tipEl.hidden = true; }
+
   // ---------------------------------------------------------------------------
   // 1. Log 模組（分級 / 攔截未捕捉錯誤 / 匯出）
   // ---------------------------------------------------------------------------
@@ -118,7 +125,7 @@
     stats: null,
     hostPriority: [],
     // 風險明細分頁（每個 CVE 一列）
-    detailSource: 'new',
+    viewSource: 'new',   // 全域資料來源：'old'（基準）或 'new'（當前）；驅動風險圖表單一來源圖與風險明細
     detailSort: { key: 'risk', dir: -1 },
     detailRows: [],
     detailFiltered: [],
@@ -145,7 +152,7 @@
 
   function chartSeverity(oldSev, newSev, mode) {
     const cats = ['Critical', 'High', 'Medium', 'Low', 'Info'];
-    const W = 600, H = 300, pad = { l: 40, r: 16, t: 20, b: 40 };
+    const W = 600, H = 300, pad = { l: 40, r: 16, t: 38, b: 40 };
     const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'xMidYMid meet', role: 'img' });
     const maxV = Math.max(1, ...cats.map(c => Math.max(oldSev[c] || 0, newSev[c] || 0)));
     const plotW = W - pad.l - pad.r, plotH = H - pad.t - pad.b;
@@ -176,10 +183,10 @@
       svg.appendChild(svgEl('text', { x: gx, y: H - pad.b + 16, 'text-anchor': 'middle' }, c));
     });
     if (twoBars) {
-      svg.appendChild(svgEl('rect', { x: pad.l, y: 4, width: 10, height: 10, fill: '#888', opacity: 0.45 }));
-      svg.appendChild(svgEl('text', { x: pad.l + 14, y: 13 }, '基準'));
-      svg.appendChild(svgEl('rect', { x: pad.l + 60, y: 4, width: 10, height: 10, fill: '#888' }));
-      svg.appendChild(svgEl('text', { x: pad.l + 74, y: 13 }, '當前'));
+      svg.appendChild(svgEl('rect', { x: pad.l, y: 8, width: 10, height: 10, fill: '#888', opacity: 0.45 }));
+      svg.appendChild(svgEl('text', { x: pad.l + 14, y: 17 }, '基準'));
+      svg.appendChild(svgEl('rect', { x: pad.l + 60, y: 8, width: 10, height: 10, fill: '#888' }));
+      svg.appendChild(svgEl('text', { x: pad.l + 74, y: 17 }, '當前'));
     }
     return svg;
   }
@@ -219,7 +226,7 @@
       ['Low', st.oldSev.Low, st.newSev.Low, RISK_COLORS.Low],
       ['Info', st.oldSev.Info, st.newSev.Info, RISK_COLORS.Info]
     ];
-    const W = 640, H = 320, pad = { l: 44, r: 16, t: 24, b: 52 };
+    const W = 640, H = 330, pad = { l: 44, r: 16, t: 42, b: 52 };
     const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'xMidYMid meet', role: 'img' });
     const maxV = Math.max(1, ...cats.map(c => Math.max(c[1], c[2])));
     const plotW = W - pad.l - pad.r, plotH = H - pad.t - pad.b;
@@ -253,10 +260,10 @@
     });
     // 圖例
     if (twoBars) {
-      svg.appendChild(svgEl('rect', { x: pad.l, y: 6, width: 10, height: 10, fill: '#888', opacity: 0.42 }));
-      svg.appendChild(svgEl('text', { x: pad.l + 14, y: 15 }, '基準'));
-      svg.appendChild(svgEl('rect', { x: pad.l + 60, y: 6, width: 10, height: 10, fill: '#888' }));
-      svg.appendChild(svgEl('text', { x: pad.l + 74, y: 15 }, '當前'));
+      svg.appendChild(svgEl('rect', { x: pad.l, y: 8, width: 10, height: 10, fill: '#888', opacity: 0.42 }));
+      svg.appendChild(svgEl('text', { x: pad.l + 14, y: 17 }, '基準'));
+      svg.appendChild(svgEl('rect', { x: pad.l + 60, y: 8, width: 10, height: 10, fill: '#888' }));
+      svg.appendChild(svgEl('text', { x: pad.l + 74, y: 17 }, '當前'));
     }
     return svg;
   }
@@ -384,22 +391,30 @@
     // 門檻參考線
     svg.appendChild(svgEl('line', { x1: X(xThresh), y1: pad.t, x2: X(xThresh), y2: pad.t + plotH, class: 'ref-line' }));
     svg.appendChild(svgEl('line', { x1: pad.l, y1: Y(yThresh), x2: W - pad.r, y2: Y(yThresh), class: 'ref-line' }));
-    // 點
+    // 點（含透明較大命中區 + 游標提示，確保滑到弱點/主機時顯示 CVE 或 IP）
     for (const p of pts) {
       const cx = X(p.x), cy = Y(p.y), color = RISK_COLORS[p.risk] || '#888';
       let node;
       if (p.added) { const s = 4; node = svgEl('path', { d: `M${cx} ${cy - s}L${cx + s} ${cy}L${cx} ${cy + s}L${cx - s} ${cy}Z`, fill: color, opacity: 0.9 }); }
       else { node = svgEl('circle', { cx, cy, r: 3.2, fill: color, opacity: 0.72 }); }
-      const cveLine = p.cve ? `\nCVE: ${p.cve}` : '';
-      node.appendChild(svgEl('title', null, `${p.host} · ${p.name}${cveLine}\n${yAx.label} ${p.y} · ${xAx.label} ${p.x}`));
       svg.appendChild(node);
+      const tipText = (mode === 'host')
+        ? `主機 ${p.host}\n${p.name}\n${yAx.label} ${p.y} · ${xAx.label} ${p.x}`
+        : `${p.host}${p.cve ? '\nCVE: ' + p.cve : ''}\n${p.name}\n${yAx.label} ${p.y} · ${xAx.label} ${p.x}`;
+      const hit = svgEl('circle', { cx, cy, r: 8, fill: 'transparent' });
+      hit.style.cursor = 'pointer';
+      hit.appendChild(svgEl('title', null, tipText)); // 原生後備
+      hit.addEventListener('mouseenter', e => showTip(tipText, e));
+      hit.addEventListener('mousemove', moveTip);
+      hit.addEventListener('mouseleave', hideTip);
+      svg.appendChild(hit);
     }
-    // 軸標題與象限標籤
+    // 軸標題與象限標籤（優先處理標籤放在上緣，避免壓到右上角資料點）
     svg.appendChild(svgEl('text', { x: pad.l + plotW / 2, y: H - 6, 'text-anchor': 'middle' }, xAx.label + ' →'));
     svg.appendChild(svgEl('text', { x: 12, y: pad.t + plotH / 2, 'text-anchor': 'middle', transform: `rotate(-90 12 ${pad.t + plotH / 2})` }, yAx.label + ' →'));
-    svg.appendChild(svgEl('text', { x: X(xAx.max) - 4, y: pad.t + 14, 'text-anchor': 'end', class: 'quad-label' }, '⚠ 優先處理'));
-    if (capped) svg.appendChild(svgEl('text', { x: pad.l + 2, y: pad.t + 12, class: 'quad-label' }, `僅顯示風險最高的 ${MAXPTS} 點`));
-    if (missing > 0) svg.appendChild(svgEl('text', { x: pad.l + 2, y: pad.t + (capped ? 26 : 12), class: 'quad-label' }, `${missing} 筆缺 ${xAx.label}/${yAx.label} 未繪`));
+    svg.appendChild(svgEl('text', { x: W - pad.r, y: 13, 'text-anchor': 'end', class: 'quad-label' }, '⚠ 右上＝優先處理'));
+    if (capped) svg.appendChild(svgEl('text', { x: pad.l + 2, y: 13, class: 'quad-label' }, `僅顯示風險最高的 ${MAXPTS} 點`));
+    if (missing > 0) svg.appendChild(svgEl('text', { x: pad.l + 2, y: capped ? 26 : 13, class: 'quad-label' }, `${missing} 筆缺 ${xAx.label}/${yAx.label} 未繪`));
     return svg;
   }
 
@@ -596,7 +611,6 @@
     if (!priority.length) { cont.textContent = '（無資料）'; return; }
     const cols = [
       { k: 'host', label: '主機 / IP', num: false },
-      { k: 'score', label: '優先分數', num: true, fmt: v => v.toFixed(2), bar: true },
       { k: 'maxVpr', label: '最高VPR', num: true, fmt: v => v ? v.toFixed(1) : '—' },
       { k: 'maxEpss', label: '最高EPSS', num: true, fmt: v => v ? (v * 100).toFixed(1) + '%' : '—' },
       { k: 'urgent', label: '緊急', num: true, hint: 'VPR≥7 且 EPSS≥50%' },
@@ -607,8 +621,8 @@
     if (S.stats && S.stats.mode === 'diff') cols.push({ k: 'added', label: '本次新增', num: true });
 
     const data = priority.slice(0, limit || priority.length);
-    const maxScore = Math.max(0.0001, ...data.map(d => d.score));
     const table = document.createElement('table');
+    table.className = 'centered';
     const thead = document.createElement('thead');
     const htr = document.createElement('tr');
     for (const col of cols) {
@@ -633,15 +647,7 @@
         const td = document.createElement('td');
         if (col.num) td.className = 'num';
         const val = d[col.k];
-        if (col.bar) {
-          td.className = 'num bar-cell';
-          const fill = document.createElement('span'); fill.className = 'bar-fill';
-          fill.style.width = Math.round((val / maxScore) * 100) + '%';
-          const s = document.createElement('span'); s.className = 'bar-val'; s.textContent = col.fmt(val);
-          td.appendChild(fill); td.appendChild(s);
-        } else {
-          td.textContent = col.fmt ? col.fmt(val) : (val === '' || val == null ? '—' : val);
-        }
+        td.textContent = col.fmt ? col.fmt(val) : (val === '' || val == null ? '—' : val);
         tr.appendChild(td);
       }
       tbody.appendChild(tr);
@@ -669,7 +675,7 @@
 
   // 將所選 CSV 展開為「每個 CVE 一列」（一個 plugin 多個 CVE → 多列）
   function buildDetailRows() {
-    const recs = S.detailSource === 'old' ? (S.old ? S.old.recs : []) : (S.new ? S.new.recs : []);
+    const recs = S.viewSource === 'old' ? (S.old ? S.old.recs : []) : (S.new ? S.new.recs : []);
     const out = [];
     for (const r of recs) {
       const base = {
@@ -781,21 +787,29 @@
     box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
-  function switchDetailSource(src) {
-    S.detailSource = src;
-    $$('#tab-detail .viewtoggle .seg').forEach(b => b.classList.toggle('active', b.dataset.dsrc === src));
-    $('#detail-expand').hidden = true;
-    buildDetailRows(); applyDetailFilter();
-  }
-
-  // 準備風險明細（資料載入後呼叫；DOM 於切到分頁時渲染）
+  // 準備風險明細（資料載入後呼叫；DOM 於切到分頁時渲染）。資料來源由全域 S.viewSource 決定。
   function prepDetail() {
-    if (!(S.old && S.old.recs.length) && S.detailSource === 'old') S.detailSource = 'new';
-    $$('#tab-detail .viewtoggle .seg').forEach(b => b.classList.toggle('active', b.dataset.dsrc === S.detailSource));
     $('#detail-expand').hidden = true;
     buildDetailHeader();
     buildDetailRows();
     applyDetailFilter();
+  }
+
+  // 全域資料來源切換（基準/當前）→ 驅動風險圖表單一來源圖與風險明細；差異比對維持對比不受影響
+  function switchViewSource(src) {
+    if (src === 'old' && !(S.old && S.old.recs.length)) return; // 無基準則忽略
+    if (src === 'new' && !(S.new && S.new.recs.length)) return;
+    S.viewSource = src;
+    $$('#src-toggle .seg').forEach(b => b.classList.toggle('active', b.dataset.view === src));
+    if (S.stats && $('#tab-charts').classList.contains('active')) renderCharts();
+    if (S.stats && $('#tab-detail').classList.contains('active')) { $('#detail-expand').hidden = true; buildDetailRows(); applyDetailFilter(); }
+  }
+  function syncSourceToggle() {
+    const oldBtn = $('#src-toggle .seg[data-view="old"]'), newBtn = $('#src-toggle .seg[data-view="new"]');
+    if (!oldBtn) return;
+    oldBtn.disabled = !(S.old && S.old.recs.length);
+    newBtn.disabled = !(S.new && S.new.recs.length);
+    $$('#src-toggle .seg').forEach(b => b.classList.toggle('active', b.dataset.view === S.viewSource));
   }
 
   // ---------------------------------------------------------------------------
@@ -828,8 +842,6 @@
     grid.appendChild(card('Critical', fmt(st.newSev.Critical), diff ? deltaSpan(st.newSev.Critical - st.oldSev.Critical) : null));
     grid.appendChild(card('High', fmt(st.newSev.High), diff ? deltaSpan(st.newSev.High - st.oldSev.High) : null));
     if (diff) grid.appendChild(card('本次新增 CVE 數', fmt(st.newCVEs), null));
-    const top = S.hostPriority[0];
-    grid.appendChild(card('最高優先主機', top ? top.host : '—', (function () { const d = document.createElement('div'); d.className = 'd flat'; d.textContent = top ? ('優先分數 ' + top.score.toFixed(2)) : ''; return d; })()));
   }
 
   // ---------------------------------------------------------------------------
@@ -1081,6 +1093,10 @@
     S.sortKey = 'priority'; S.sortDir = -1;
     applyFilterSort();
 
+    // 全域資料來源：有當前預設當前，否則用基準（每次匯入重設）
+    S.viewSource = (S.new && S.new.recs.length) ? 'new' : 'old';
+    syncSourceToggle();
+
     // 風險明細分頁（準備資料 + 計數，實際 DOM 於切到該分頁時渲染）
     prepDetail();
 
@@ -1095,6 +1111,7 @@
   }
   function renderCharts() {
     if (!S.stats) return;
+    hideTip();
     // 依 IP 篩選即時計算本分頁圖表的資料集（未選任何主機 → 顯示提示，不畫）
     const sel = S.chartHosts;
     const allHosts = S.hostPriority.length;
@@ -1104,8 +1121,10 @@
     const newRecs = (S.new ? S.new.recs : []).filter(keep);
     const rows = useAll ? S.rows : S.rows.filter(keep);
     const stats = NCore.computeStats(oldRecs, newRecs, rows);
-    const priority = NCore.computeHostPriority(oldRecs, newRecs, rows);
-    const recs = newRecs.length ? newRecs : oldRecs;
+    // 單一來源圖（四象限/熱力圖/Top 主機）依全域資料來源；比較圖（總數/嚴重度）仍用兩份對比
+    const srcNew = S.viewSource === 'new';
+    const recs = srcNew ? newRecs : oldRecs;
+    const priority = NCore.computeHostPriority(srcNew ? [] : oldRecs, srcNew ? newRecs : [], rows);
 
     const empty = (sel.size === 0 && allHosts > 0);
     if (empty) {
@@ -1133,8 +1152,10 @@
     setText('#src-severity', both);
   }
   function setText(sel, txt) { const el = $(sel); if (el) el.textContent = txt; }
-  // 單一資料集圖表的來源（有當前用當前，否則用基準）
+  // 單一資料集圖表的來源（依全域 viewSource）
   function chartSourceLabel() {
+    if (S.viewSource === 'old' && S.old && S.old.recs.length) return `基準掃描（${S.old.name}）`;
+    if (S.viewSource === 'new' && S.new && S.new.recs.length) return `當前掃描（${S.new.name}）`;
     if (S.new && S.new.recs.length) return `當前掃描（${S.new.name}）`;
     if (S.old && S.old.recs.length) return `基準掃描（${S.old.name}）`;
     return '—';
@@ -1265,8 +1286,10 @@
       buildIpFilter();
     }));
 
-    // 風險明細分頁：資料來源切換 / 篩選 / 排序
-    $$('#tab-detail .viewtoggle .seg').forEach(b => b.addEventListener('click', () => switchDetailSource(b.dataset.dsrc)));
+    // 全域資料來源切換（基準/當前）
+    $$('#src-toggle .seg').forEach(b => b.addEventListener('click', () => switchViewSource(b.dataset.view)));
+
+    // 風險明細分頁：篩選 / 排序（資料來源由全域控制）
     $('#d-search').addEventListener('input', debounce(applyDetailFilter, 180));
     ['#d-risk'].forEach(s => $(s).addEventListener('change', applyDetailFilter));
     ['#d-vpr', '#d-epss'].forEach(s => $(s).addEventListener('input', debounce(applyDetailFilter, 200)));

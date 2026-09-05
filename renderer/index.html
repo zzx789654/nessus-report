@@ -25,6 +25,11 @@
         </div>
       </div>
       <div class="topbar-actions">
+        <span class="src-label">資料來源</span>
+        <div class="viewtoggle" id="src-toggle" role="tablist" aria-label="全域資料來源">
+          <button type="button" class="seg" data-view="old">基準</button>
+          <button type="button" class="seg active" data-view="new">當前</button>
+        </div>
         <button id="btn-sample" class="btn btn-ghost" type="button">下載範例 CSV</button>
       </div>
     </header>
@@ -213,10 +218,6 @@
         <div class="panel">
           <div class="toolbar">
             <div class="filters">
-              <div class="viewtoggle" role="tablist" aria-label="資料來源">
-                <button type="button" class="seg" data-dsrc="old">基準（舊）</button>
-                <button type="button" class="seg active" data-dsrc="new">當前（新）</button>
-              </div>
               <input type="search" id="d-search" class="input" placeholder="搜尋 CVE / 主機 / 名稱…" autocomplete="off" />
               <select id="d-risk" class="input" aria-label="依嚴重度篩選">
                 <option value="">全部嚴重度</option>
@@ -232,7 +233,7 @@
             </div>
             <span id="d-count" class="result-count">—</span>
           </div>
-          <p class="panel-hint">每個 <b>CVE</b> 一列（一個 plugin 涵蓋多個 CVE 會展開成多列）。可選「基準 / 當前」CSV、即時篩選、點欄位標題排序；<b>點列可展開完整說明與處理方式</b>。「處理方式」取自 Nessus 的 Solution 欄位。</p>
+          <p class="panel-hint">每個 <b>CVE</b> 一列（一個 plugin 涵蓋多個 CVE 會展開成多列）。資料來源依右上角<b>全域「資料來源」（基準 / 當前）</b>；可即時篩選、點欄位標題排序；<b>點列可展開完整說明與處理方式</b>。「處理方式」取自 Nessus 的 Solution 欄位。</p>
           <div class="vtable" id="dtable" role="table" aria-label="風險明細">
             <div class="vthead" id="dthead" role="row"></div>
             <div class="vviewport" id="dviewport" role="rowgroup">

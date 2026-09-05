@@ -70,38 +70,50 @@ console.log('\n[3] 正規化 / 風險判定');
   eq('n/a→null', C.num('n/a'), null);
 })();
 
-console.log('\n[4] Diff 引擎（樣本檔）');
+console.log('\n[4] Diff 引擎（固定測試資料）');
+// 內建固定 fixture，不依賴 samples/（範例資料可能調整）
+const H = 'Plugin ID,CVE,CVSS v2.0 Base Score,CVSS v3.0 Base Score,Risk,Host,Protocol,Port,Name,VPR Score,EPSS Score';
+const OLD_CSV = [H,
+  '19506,,,,None,192.168.1.10,tcp,0,Scan Info,,',
+  '153953,CVE-2021-44228,9.3,10.0,Critical,192.168.1.10,tcp,8080,Log4Shell,9.8,0.975',
+  '42873,CVE-2013-2566,4.3,,Medium,192.168.1.10,tcp,443,RC4,4.4,0.012',
+  '104743,CVE-2017-0144,9.3,8.1,Critical,192.168.1.20,tcp,445,EternalBlue,9.6,0.94',
+  '51192,,,,Medium,192.168.1.20,tcp,3389,SSL Cert,5.9,0.31'
+].join('\n');
+const NEW_CSV = [H,
+  '19506,,,,None,192.168.1.10,tcp,0,Scan Info,,',
+  '153953,CVE-2021-44228,9.3,10.0,Critical,192.168.1.10,tcp,8080,Log4Shell,9.8,0.975',
+  '156032,CVE-2022-22965,,9.8,Critical,192.168.1.10,tcp,8080,Spring4Shell,9.1,0.90',
+  '104743,CVE-2017-0144,9.3,8.1,Critical,192.168.1.20,tcp,445,EternalBlue,9.6,0.94',
+  '51192,,,7.5,High,192.168.1.20,tcp,3389,SSL Cert,7.4,0.31'
+].join('\n');
+function recsOf(csv) { const raw = C.parseCSV(csv); return C.normalize(raw, C.mapColumns(raw[0])).recs; }
 let stats, priority;
 (function () {
-  const oldR = toRecs(loadCsv('scan_baseline.csv')).recs;
-  const newR = toRecs(loadCsv('scan_current.csv')).recs;
-  eq('基準記錄數', oldR.length, 7);
-  eq('當前記錄數', newR.length, 7);
+  const oldR = recsOf(OLD_CSV), newR = recsOf(NEW_CSV);
+  eq('基準記錄數', oldR.length, 5);
+  eq('當前記錄數', newR.length, 5);
   const rows = C.computeRows(oldR, newR);
   const by = s => rows.filter(r => r.status === s).length;
-  eq('新增數', by('added'), 3);
-  eq('已修復數', by('removed'), 3);
+  eq('新增數 (Spring4Shell)', by('added'), 1);
+  eq('已修復數 (RC4)', by('removed'), 1);
   eq('持續數', by('persistent'), 3);
-  eq('變更數', by('changed'), 1);
-  eq('差異列總數', rows.length, 10);
+  eq('變更數 (SSL Cert Medium→High)', by('changed'), 1);
   const changed = rows.find(r => r.status === 'changed');
-  ok('變更列為 51192（SSL Cert，Medium→High）', changed && changed.pluginId === '51192' && changed.risk === 'High' && changed.oldRisk === 'Medium');
+  ok('變更列 51192 Medium→High', changed && changed.pluginId === '51192' && changed.risk === 'High' && changed.oldRisk === 'Medium');
 
   stats = C.computeStats(oldR, newR, rows);
   eq('模式=diff', stats.mode, 'diff');
-  eq('當前 Critical', stats.newSev.Critical, 4);
-  eq('基準 Medium', stats.oldSev.Medium, 3);
-  eq('新增 CVE 數', stats.newCVEs, 3);
-  eq('主機數', stats.newHosts, 3);
+  eq('當前 Critical', stats.newSev.Critical, 3);
+  eq('新增 CVE 數', stats.newCVEs, 1);
+  eq('主機數', stats.newHosts, 2);
 
   priority = C.computeHostPriority(oldR, newR, rows);
   eq('最高優先主機', priority[0].host, '192.168.1.10');
-  ok('優先分數遞減', priority[0].score >= priority[1].score && priority[1].score >= priority[2].score);
   const h10 = priority.find(h => h.host === '192.168.1.10');
   eq('.10 緊急數(VPR≥7&EPSS≥.5)', h10.urgent, 2);
-  // 每台主機 VPR/EPSS 加總與各嚴重度數量（熱力圖切換 / Top 主機堆疊用）
-  ok('.10 sumVpr = 9.8+9.1(+RC4已修不算當前) ≈ 18.9', Math.abs(h10.sumVpr - 18.9) < 0.01, 'sumVpr=' + h10.sumVpr);
-  ok('.10 sumEpss ≈ 0.975+0.90 = 1.875', Math.abs(h10.sumEpss - 1.875) < 0.001, 'sumEpss=' + h10.sumEpss);
+  ok('.10 sumVpr ≈ 18.9', Math.abs(h10.sumVpr - 18.9) < 0.01, 'sumVpr=' + h10.sumVpr);
+  ok('.10 sumEpss ≈ 1.875', Math.abs(h10.sumEpss - 1.875) < 0.001, 'sumEpss=' + h10.sumEpss);
   eq('.10 Critical 數', h10.sev.Critical, 2);
   eq('.10 Info 數', h10.sev.Info, 1);
   eq('.10 弱點總數 = 各嚴重度加總', h10.count, h10.sev.Critical + h10.sev.High + h10.sev.Medium + h10.sev.Low + h10.sev.Info);
@@ -109,11 +121,21 @@ let stats, priority;
 
 console.log('\n[5] 單份模式（只匯入一份）');
 (function () {
-  const newR = toRecs(loadCsv('scan_current.csv')).recs;
+  const newR = recsOf(NEW_CSV);
   const rows = C.computeRows([], newR);
   ok('全部為 single 狀態', rows.every(r => r.status === 'single'));
   const st = C.computeStats([], newR, rows);
   eq('單份模式', st.mode, 'single');
+})();
+
+console.log('\n[5b] 範例檔可解析且約 300 筆');
+(function () {
+  const oldR = toRecs(loadCsv('scan_baseline.csv')).recs;
+  const newR = toRecs(loadCsv('scan_current.csv')).recs;
+  ok('基準 ≥ 250 筆', oldR.length >= 250, 'len=' + oldR.length);
+  ok('當前 ≥ 250 筆', newR.length >= 250, 'len=' + newR.length);
+  ok('多台主機(≥ 20)', new Set(newR.map(r => r.host)).size >= 20);
+  ok('含 Solution 欄位', newR.some(r => r.solution && r.solution.length > 0));
 })();
 
 console.log('\n[6] CSV 匯出防公式注入');
