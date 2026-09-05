@@ -260,10 +260,13 @@
             <label class="chk"><input type="checkbox" id="r-findings" checked /> 明細表</label>
             <label class="chk sub"><input type="checkbox" id="r-findings-filter" /> 明細僅納入目前「差異比對」分頁的篩選結果</label>
             <label class="chk sub"><input type="checkbox" id="r-findings-highonly" checked /> 明細僅納入 Critical / High</label>
+            <label class="chk sub"><input type="checkbox" id="r-findings-track" /> 明細加入處理狀態 / 負責人欄位（若來源含此資料）</label>
           </div>
           <div class="report-meta">
             <label>報表標題 <input type="text" id="r-title" class="input input-wide" value="Nessus 弱點掃描比對報告" /></label>
             <label>單位 / 專案 <input type="text" id="r-org" class="input input-wide" placeholder="（選填）" /></label>
+            <label>負責人 <input type="text" id="r-owner" class="input input-wide" placeholder="（選填）" /></label>
+            <label>備註 <input type="text" id="r-notes" class="input input-wide" placeholder="（選填）" /></label>
           </div>
           <div class="report-actions">
             <button id="btn-report" class="btn btn-primary" type="button">產出 HTML 報表</button>
@@ -294,11 +297,14 @@
       </section>
     </main>
 
-    <!-- 忙碌遮罩 -->
+    <!-- 忙碌 / 進度遮罩 -->
     <div id="busy" class="busy" hidden>
       <div class="busy-box">
         <div class="spinner" aria-hidden="true"></div>
         <div id="busy-text">處理中…</div>
+        <div id="busy-progress" class="busy-progress" hidden><div id="busy-bar" class="busy-bar"></div></div>
+        <div id="busy-sub" class="busy-sub"></div>
+        <button id="busy-cancel" class="btn btn-danger" type="button" hidden>取消匯入</button>
       </div>
     </div>
   </div>

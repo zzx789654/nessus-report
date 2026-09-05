@@ -81,11 +81,20 @@ Nessus 匯出的 CSV（Export → CSV）常見欄位如下。本工具**以表�
 
 - `contextIsolation: true`、`nodeIntegration: false`、`sandbox: true`、`webSecurity: true`
 - 嚴格 CSP：`default-src 'none'; script-src 'self'; connect-src 'none'`（完全離線、無外連、無注入腳本執行）
-- 封鎖對外導覽與開新視窗（僅報表預覽的 `about:blank` 放行，外部連結交系統瀏覽器）
+- **完全封鎖外連（縱深防禦）**：以 `session.webRequest.onBeforeRequest` 攔截所有非本機（`http/https/ws/ftp…`）請求一律取消，即使 CSP 被繞過也擋得住；`setPermissionRequestHandler` 拒絕所有權限請求
+- 封鎖對外導覽與重新導向；開新視窗僅放行報表預覽的 `about:blank`。**不對外開任何連結**——連「交給系統瀏覽器開啟」都不做（v1.8 起移除 `shell.openExternal`），確保沒有任何對外資料路徑
 - `preload` 僅以 `contextBridge` 暴露**單一**「另存檔案」API，主行程二次驗證（副檔名白名單、檔名清理、路徑由原生對話框決定，防路徑穿越）
-- 顯示層一律用 `textContent` / DOM 建立寫入，報表字串一律 `escapeXml`，杜絕 XSS
+- 顯示層一律用 `textContent` / DOM 建立寫入，報表字串一律 `escapeXml`，杜絕 XSS（含弱點名稱中的 `<script>`/`onerror` payload，已於真實瀏覽器 E2E 驗證不被執行）
 - **CSV 匯出防公式注入**：以 `= + - @` 等開頭的儲存格自動前置 `'`
 - 不做任何持久化、不連線、不外傳
+
+### 資料完整性（v1.8）
+
+- 數值欄位（CVSS / VPR / EPSS）遇**超界或非數值一律標記為缺值（null）並記錄 issue，不夾到最大值**——避免把異常偽裝成正常資料而誤導判讀；匯入後於執行 Log 條列。
+- **EPSS 三種格式**（`0.97` 機率 / `97` 百分比 / `97%`）自動統一為 0~1；換算後仍超界才視為非法。
+- **重複列偵測**（相同 Host / Plugin / Port / Protocol）：標記並計數，不自動刪除（重複是掃描品質訊號）。
+- **變更分類**：持續存在的弱點會進一步標示變更了「風險 / 分數 / CVE / 名稱 / 修補方式」；新增 CVE 統計涵蓋「持續弱點內容變更後才出現的 CVE」。
+- **正式報告欄位**：支援 Description、Plugin Output、See Also、資產資訊（DNS/OS/MAC）、處理狀態、例外原因、負責人、備註；掃描時間由 Scan Information plugin(19506) 擷取，報告保留來源檔名與產製時間以利追溯。
 
 ---
 
@@ -96,7 +105,8 @@ Nessus 匯出的 CSV（Export → CSV）常見欄位如下。本工具**以表�
   - 只保留比對/評分/報表所需欄位（不留大型描述文字），降低每列記憶體。
   - 四象限圖限制最多 800 個資料點（取風險最高者），報表明細上限 3000 列。
   - Log 環狀上限 5000 筆。
-- 實測：兩份各 5 萬列（共 10 萬弱點）解析約 0.5 秒、比對約 0.45 秒，heap 約 130MB。
+- **大檔串流解析（v1.8）**：改用可續傳的串流解析器（`file.stream()` 逐塊讀取，正確處理跨區塊的 `""` 跳脫與 CRLF），匯入時**顯示進度、可取消**，並設 200MB 檔案大小上限；不再整檔一次讀入。
+- 實測：合成 6 萬列串流解析 + 正規化 + 比對 < 1 秒（`npm test` 第 [13] 項）；兩份各 5 萬列（共 10 萬弱點）解析約 0.5 秒、比對約 0.45 秒，heap 約 130MB。
 - **關閉視窗即結束行程，作業系統自動回收全部記憶體**（不需手動清除）。
 
 ### 兩種規模的畫面策略
@@ -123,13 +133,16 @@ nessus-report/
 │  └─ app.js            renderer：UI、虛擬表格、SVG 圖表、報表、Log、匯出
 ├─ samples/             範例 CSV（基準 / 當前）
 ├─ test/run-tests.js    核心邏輯測試（Node，零相依）
+├─ test/e2e.js          真實瀏覽器 E2E（playwright-core + 預裝 Chromium）
 └─ package.json
 ```
 
 ## 測試
 
 ```bash
-npm test      # 48 項核心邏輯測試（解析 / 欄位 / diff / 統計 / 優先分數 / 防注入）
+npm test      # 169 項核心邏輯測試（解析 / 欄位 / diff / 統計 / 優先分數 / 資料完整性 / 非法值 / 重複 / 變更分類 / 大量效能 / 防注入 / 離線邊界靜態不變式）
+npm run test:e2e   # 真實 Chromium 端對端：GUI 匯入、XSS 未執行、外連被 CSP 擋、明細呈現正式報告欄位
+npm run test:all   # 兩者一起跑
 ```
 
 ---

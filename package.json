@@ -1,11 +1,13 @@
 {
   "name": "nessus-diff",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "description": "完全離線的 Nessus 弱點掃描 CSV 比對工具（以 IP 為主 Key 的 diff、EPSS/VPR 優先處理圖表、報表匯出）。",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "node test/run-tests.js"
+    "test": "node test/run-tests.js",
+    "test:e2e": "node test/e2e.js",
+    "test:all": "node test/run-tests.js && node test/e2e.js"
   },
   "author": "",
   "license": "MIT",

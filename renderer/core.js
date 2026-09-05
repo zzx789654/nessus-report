@@ -24,29 +24,66 @@
     return Number.isFinite(f) ? f : null;
   }
 
-  // CSV 解析（RFC4180：引號、"" 跳脫、內嵌逗號/換行、BOM、CRLF/LF）
+  // EPSS 三種格式：0.97（機率）、97（百分比）、97%（百分比）→ 一律轉 0~1。
+  // 超出範圍或非數值 → 回報 issue、值為 null（不夾值，交由上層標記）。
+  function parseEpssRaw(raw) {
+    const s = String(raw == null ? '' : raw).trim();
+    if (s === '' || /^n\/?a$/i.test(s)) return { value: null };
+    const hadPct = /%\s*$/.test(s);
+    const f = parseFloat(s.replace('%', ''));
+    if (!Number.isFinite(f)) return { value: null, issue: 'EPSS 非數值' };
+    let v = f;
+    if (hadPct || v > 1) v = v / 100;   // 97 或 97% → 0.97；0.97 維持
+    if (v < 0 || v > 1) return { value: null, issue: 'EPSS 超出範圍 0~1' };
+    return { value: v };
+  }
+  // VPR / CVSS 分數：域 0~max；超界或非數值 → issue + null（不夾值）。
+  function parseScoreRaw(raw, max, label) {
+    const s = String(raw == null ? '' : raw).trim();
+    if (s === '' || /^n\/?a$/i.test(s)) return { value: null };
+    const f = parseFloat(s);
+    if (!Number.isFinite(f)) return { value: null, issue: label + ' 非數值' };
+    if (f < 0 || f > max) return { value: null, issue: label + ' 超出範圍 0~' + max };
+    return { value: f };
+  }
+
+  // 可續傳的串流 CSV 解析器（RFC4180；支援跨 chunk 的引號跳脫與 CRLF）。
+  // 供大檔分塊/串流解析：push(chunkText) 多次、最後 end()；每完成一列呼叫 onRow(cells)。
+  function createStreamParser(onRow) {
+    let field = '', row = [], inQ = false, pendingQuote = false, pendingCR = false, first = true;
+    function emit() { row.push(field); field = ''; const rr = row; row = []; if (!(rr.length === 1 && rr[0] === '')) onRow(rr); }
+    function push(text) {
+      let i = 0; const n = text.length;
+      if (first) { first = false; if (n && text.charCodeAt(0) === 0xFEFF) i = 1; }
+      while (i < n) {
+        const c = text[i];
+        if (pendingCR) { pendingCR = false; if (c === '\n') { i++; continue; } }
+        if (pendingQuote) { pendingQuote = false; if (c === '"') { field += '"'; i++; continue; } inQ = false; }
+        if (inQ) {
+          if (c === '"') {
+            if (i + 1 < n) { if (text[i + 1] === '"') { field += '"'; i += 2; continue; } inQ = false; i++; continue; }
+            pendingQuote = true; i++; continue;
+          }
+          field += c; i++; continue;
+        }
+        if (c === '"') { inQ = true; i++; continue; }
+        if (c === ',') { row.push(field); field = ''; i++; continue; }
+        if (c === '\n') { emit(); i++; continue; }
+        if (c === '\r') { emit(); if (i + 1 < n) { i += (text[i + 1] === '\n') ? 2 : 1; } else { pendingCR = true; i++; } continue; }
+        field += c; i++;
+      }
+    }
+    function end() { if (pendingQuote) inQ = false; if (field.length > 0 || row.length > 0) emit(); }
+    return { push, end };
+  }
+
+  // 一次性解析（沿用串流核心，確保與分塊路徑行為一致）
   function parseCSV(text) {
     const rows = [];
-    let row = [], field = '', inQ = false;
-    let i = 0; const n = text.length;
-    if (n && text.charCodeAt(0) === 0xFEFF) i = 1;
-    while (i < n) {
-      const c = text[i];
-      if (inQ) {
-        if (c === '"') {
-          if (text[i + 1] === '"') { field += '"'; i += 2; continue; }
-          inQ = false; i++; continue;
-        }
-        field += c; i++; continue;
-      }
-      if (c === '"') { inQ = true; i++; continue; }
-      if (c === ',') { row.push(field); field = ''; i++; continue; }
-      if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
-      if (c === '\r') { row.push(field); rows.push(row); row = []; field = ''; i += (text[i + 1] === '\n') ? 2 : 1; continue; }
-      field += c; i++;
-    }
-    if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
-    return rows.filter(r => !(r.length === 1 && r[0] === ''));
+    const p = createStreamParser(r => rows.push(r));
+    p.push(String(text == null ? '' : text));
+    p.end();
+    return rows;
   }
 
   const COLDEF = {
@@ -62,7 +99,17 @@
     vpr:      ['vpr score', 'vpr', 'vulnerability priority rating'],
     epss:     ['epss score', 'epss'],
     synopsis: ['synopsis'],
-    solution: ['solution', 'remediation', 'steps to remediate']
+    solution: ['solution', 'remediation', 'steps to remediate'],
+    description: ['description'],
+    pluginOutput: ['plugin output', 'plugin_output', 'output'],
+    seeAlso: ['see also', 'see_also', 'xref', 'references'],
+    dnsName: ['dns name', 'netbios name', 'fqdn'],
+    os: ['operating system', 'os'],
+    mac: ['mac address', 'mac'],
+    disposition: ['處理狀態', 'remediation status', 'status', 'state', 'disposition'],
+    exception: ['例外原因', 'exception reason', 'risk acceptance', 'justification'],
+    owner: ['負責人', 'owner', 'assignee', 'assigned to'],
+    note: ['備註', 'note', 'notes', 'comment', 'comments']
   };
   const REQUIRED = ['host', 'pluginId'];
 
@@ -100,41 +147,73 @@
   }
 
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
-  // EPSS 應為 0~1 機率；若匯出成百分比（如 97% → 97、或 0~100 尺度）自動換算，並夾到 [0,1]。
-  // 這同時避免髒值汙染優先分數與四象限座標（否則會飛出畫面被裁掉、辨識困難）。
-  function normEpss(v) { if (v == null) return null; if (v > 1) v = v / 100; return clamp(v, 0, 1); }
-  // VPR 域為 0~10，夾範圍避免異常值使圖表座標溢出。
-  function normVpr(v) { if (v == null) return null; return clamp(v, 0, 10); }
+  // 保留數字版工具（測試/相容）：非法值回 null（不夾值）。
+  function normEpss(v) { if (v == null) return null; let x = v > 1 ? v / 100 : v; return (x < 0 || x > 1) ? null : x; }
+  function normVpr(v) { if (v == null) return null; return (v < 0 || v > 10) ? null : v; }
 
+  // 將 rawRows（含表頭）正規化為記錄陣列，並回報：略過列數、資料問題(issues)、重複列(dupes)。
+  // 數值非法值一律標記為 issue 並存 null（不夾到最大值）。
   function normalize(rawRows, map) {
     const recs = [];
-    let skipped = 0;
+    let skipped = 0, issueCount = 0, dupes = 0;
+    const issues = [], dupeSamples = [], ISSUE_CAP = 300;
+    const seen = new Set();
     const get = (r, key) => (map[key] >= 0 ? (r[map[key]] || '') : '');
+    const addIssue = (line, field, raw, reason) => { issueCount++; if (issues.length < ISSUE_CAP) issues.push({ line, field, raw: String(raw).slice(0, 60), reason }); };
     for (let k = 1; k < rawRows.length; k++) {
-      const r = rawRows[k];
+      const r = rawRows[k]; const line = k + 1;
       const host = String(get(r, 'host')).trim();
       const pid = String(get(r, 'pluginId')).trim();
       if (!host || !pid) { skipped++; continue; }
-      let cvss2 = num(get(r, 'cvss2')); if (cvss2 != null) cvss2 = clamp(cvss2, 0, 10);
-      let cvss3 = num(get(r, 'cvss3')); if (cvss3 != null) cvss3 = clamp(cvss3, 0, 10);
-      const cvss = (cvss3 != null) ? cvss3 : cvss2; // 合併值（風險推導用，v3 優先）
+      const c2 = parseScoreRaw(get(r, 'cvss2'), 10, 'CVSS v2.0'); if (c2.issue) addIssue(line, 'CVSS v2.0', get(r, 'cvss2'), c2.issue);
+      const c3 = parseScoreRaw(get(r, 'cvss3'), 10, 'CVSS v3.0'); if (c3.issue) addIssue(line, 'CVSS v3.0', get(r, 'cvss3'), c3.issue);
+      const vp = parseScoreRaw(get(r, 'vpr'), 10, 'VPR'); if (vp.issue) addIssue(line, 'VPR', get(r, 'vpr'), vp.issue);
+      const ep = parseEpssRaw(get(r, 'epss')); if (ep.issue) addIssue(line, 'EPSS', get(r, 'epss'), ep.issue);
+      const cvss = (c3.value != null) ? c3.value : c2.value;
       const risk = normRisk(get(r, 'risk'), cvss);
-      recs.push({
+      const rec = {
         host, pluginId: pid,
         name: String(get(r, 'name')).trim() || ('Plugin ' + pid),
         risk, riskLevel: RISK_LEVEL[risk] || 0,
         cve: String(get(r, 'cve')).trim(),
         port: String(get(r, 'port')).trim(),
         protocol: String(get(r, 'protocol')).trim().toLowerCase(),
-        cvss, cvss2, cvss3, vpr: normVpr(num(get(r, 'vpr'))), epss: normEpss(num(get(r, 'epss'))),
+        cvss, cvss2: c2.value, cvss3: c3.value, vpr: vp.value, epss: ep.value,
         synopsis: String(get(r, 'synopsis')).trim(),
-        solution: String(get(r, 'solution')).trim()
-      });
+        solution: String(get(r, 'solution')).trim(),
+        description: String(get(r, 'description')).trim(),
+        pluginOutput: String(get(r, 'pluginOutput')).trim(),
+        seeAlso: String(get(r, 'seeAlso')).trim(),
+        dnsName: String(get(r, 'dnsName')).trim(),
+        os: String(get(r, 'os')).trim(),
+        mac: String(get(r, 'mac')).trim(),
+        disposition: String(get(r, 'disposition')).trim(),
+        exception: String(get(r, 'exception')).trim(),
+        owner: String(get(r, 'owner')).trim(),
+        note: String(get(r, 'note')).trim()
+      };
+      const fk = host + '|' + findingKey(rec);
+      if (seen.has(fk)) { dupes++; if (dupeSamples.length < 20) dupeSamples.push(fk); }
+      else seen.add(fk);
+      recs.push(rec);
     }
-    return { recs, skipped };
+    return { recs, skipped, issues, issueCount, dupes, dupeSamples };
   }
 
   function findingKey(rec) { return rec.pluginId + '|' + rec.port + '|' + rec.protocol; }
+  // 正規化 CVE 字串（排序去重）供內容比較
+  function normCveStr(s) { return String(s || '').split(/[,;\s]+/).filter(x => /^CVE-/i.test(x)).map(x => x.toUpperCase()).sort().join(','); }
+
+  // 掃描時間：由 Nessus「Scan Information」plugin(19506) 的 Plugin Output 盡力擷取
+  function extractScanTime(recs) {
+    for (const r of recs || []) {
+      if (r.pluginId === '19506' && r.pluginOutput) {
+        const m = /Scan\s+(?:Start|start)\s+Date\s*:\s*([^\r\n]+)/.exec(r.pluginOutput);
+        if (m) return m[1].trim();
+      }
+    }
+    return '';
+  }
 
   // 由主機推導 /24 網段（非 IPv4 歸為「其他」），供 300+ IP 時的網段彙總收斂
   function subnetOf(host) {
@@ -176,14 +255,27 @@
     return byHost;
   }
 
-  function mkRow(rec, status, oldRec) {
+  function mkRow(rec, status, oldRec, changeTypes) {
     return {
       host: rec.host, pluginId: rec.pluginId, port: rec.port, protocol: rec.protocol,
       name: rec.name, risk: rec.risk, riskLevel: rec.riskLevel, cve: rec.cve,
       cvss: rec.cvss, vpr: rec.vpr, epss: rec.epss, status,
       oldRisk: oldRec ? oldRec.risk : null,
+      disposition: rec.disposition || '', owner: rec.owner || '',
+      changeTypes: changeTypes || [],
       priority: (rec.vpr != null && rec.epss != null) ? (rec.vpr / 10) * rec.epss : 0
     };
+  }
+
+  // 區分變更類型：風險(嚴重度) / 分數(VPR/EPSS/CVSS) / CVE / 名稱 / 修補方式
+  function classifyChange(o, n) {
+    const t = [];
+    if (o.risk !== n.risk) t.push('風險');
+    if (o.vpr !== n.vpr || o.epss !== n.epss || o.cvss !== n.cvss) t.push('分數');
+    if (normCveStr(o.cve) !== normCveStr(n.cve)) t.push('CVE');
+    if (o.name !== n.name) t.push('名稱');
+    if ((o.solution || '') !== (n.solution || '')) t.push('修補');
+    return t;
   }
 
   // 以 host/IP 為主 Key 的差異計算
@@ -201,8 +293,8 @@
           for (const key of keys) {
             const o = om.get(key), n = nm.get(key);
             if (o && n) {
-              const changed = (o.risk !== n.risk) || (o.vpr !== n.vpr) || (o.epss !== n.epss);
-              rows.push(mkRow(n, changed ? 'changed' : 'persistent', o));
+              const ct = classifyChange(o, n);
+              rows.push(mkRow(n, ct.length ? 'changed' : 'persistent', o, ct));
             } else if (n && !o) { rows.push(mkRow(n, 'added', null)); }
             else { rows.push(mkRow(o, 'removed', null)); }
           }
@@ -239,13 +331,18 @@
       else if (row.status === 'persistent') st.persistent++;
       else if (row.status === 'changed') st.changed++;
     }
-    const cveSet = new Set();
-    for (const row of rows) {
-      if (row.status === 'added' && row.cve) {
-        String(row.cve).split(/[,;\s]+/).forEach(c => { if (/^CVE-/i.test(c)) cveSet.add(c.toUpperCase()); });
-      }
+    // 新增 CVE：以「當前所有弱點的 CVE 集合」減去「基準的 CVE 集合」，
+    // 因此涵蓋新增弱點、以及持續弱點內容變更後新出現的 CVE（修正舊版只算 added 的漏算）。
+    const cveOf = (rs) => { const s = new Set(); for (const r of rs) if (r.cve) String(r.cve).split(/[,;\s]+/).forEach(c => { if (/^CVE-/i.test(c)) s.add(c.toUpperCase()); }); return s; };
+    if (st.mode === 'diff') {
+      const oldCve = cveOf(oldRecs), newCve = cveOf(primary);
+      let nc = 0; for (const c of newCve) if (!oldCve.has(c)) nc++;
+      st.newCVEs = nc;
+    } else {
+      st.newCVEs = cveOf(primary).size;
     }
-    st.newCVEs = cveSet.size;
+    // 內容變更（僅內容、非風險/分數）計數，供報告說明
+    st.contentChanged = rows.filter(r => r.status === 'changed' && r.changeTypes && !r.changeTypes.includes('風險') && !r.changeTypes.includes('分數')).length;
     return st;
   }
 
@@ -277,8 +374,10 @@
   }
 
   return {
-    escapeXml, num, parseCSV, COLDEF, REQUIRED, mapColumns, RISK_LEVEL,
-    normRisk, normEpss, normVpr, clamp, normalize, findingKey, csvCell, buildIndex, mkRow,
+    escapeXml, num, parseCSV, createStreamParser, parseEpssRaw, parseScoreRaw,
+    COLDEF, REQUIRED, mapColumns, RISK_LEVEL,
+    normRisk, normEpss, normVpr, clamp, normalize, findingKey, normCveStr, extractScanTime,
+    csvCell, buildIndex, mkRow, classifyChange,
     computeRows, severityCounts, computeStats, computeHostPriority,
     subnetOf, computeSubnetAggregation
   };

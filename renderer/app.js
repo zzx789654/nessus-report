@@ -134,7 +134,9 @@
     // 風險圖表的 IP 篩選（多選）；為所選主機集合，size===主機總數 表示全選
     chartHosts: new Set(),
     ipSort: 'risk',  // IP 選單排序：'risk'（風險降序）或 'ip'（IP 降序）
-    heatMetric: 'vpr'  // 熱力圖數值：'vpr'（Σ VPR）或 'epss'（Σ EPSS）
+    heatMetric: 'vpr',  // 熱力圖數值：'vpr'（Σ VPR）或 'epss'（Σ EPSS）
+    cancelImport: false, // 匯入取消旗標
+    scanTime: { old: '', new: '' } // 由 Scan Information plugin 擷取的掃描時間
   };
 
   // ---------------------------------------------------------------------------
@@ -468,7 +470,7 @@
   // 8. 差異表（虛擬捲動）
   // ---------------------------------------------------------------------------
   const COLS = [
-    { key: 'status', label: '狀態', w: '92px', type: 'status' },
+    { key: 'status', label: '狀態', w: '150px', type: 'status' },
     { key: 'host', label: '主機 / IP', w: '150px' },
     { key: 'pluginId', label: 'Plugin', w: '78px' },
     { key: 'name', label: '弱點名稱', w: 'minmax(200px,1.6fr)' },
@@ -582,7 +584,9 @@
       if (c.type === 'status') {
         const s = document.createElement('span');
         s.className = 'st-' + r.status + ' st-dot';
-        s.textContent = STATUS_LABEL[r.status] || r.status;
+        let label = STATUS_LABEL[r.status] || r.status;
+        if (r.status === 'changed' && r.changeTypes && r.changeTypes.length) { label += `（${r.changeTypes.join('/')}）`; td.title = '變更內容：' + r.changeTypes.join('、') + (r.oldRisk ? `；原嚴重度 ${r.oldRisk}` : ''); }
+        s.textContent = label;
         td.appendChild(s);
       } else if (c.type === 'risk') {
         const p = document.createElement('span');
@@ -681,7 +685,10 @@
     for (const r of recs) {
       const base = {
         host: r.host, risk: r.risk, riskLevel: r.riskLevel, cvss: r.cvss, vpr: r.vpr, epss: r.epss,
-        port: r.port, name: r.name, solution: r.solution || '', synopsis: r.synopsis || ''
+        port: r.port, protocol: r.protocol || '', name: r.name, solution: r.solution || '', synopsis: r.synopsis || '',
+        description: r.description || '', pluginOutput: r.pluginOutput || '', seeAlso: r.seeAlso || '',
+        dnsName: r.dnsName || '', os: r.os || '', mac: r.mac || '',
+        disposition: r.disposition || '', exception: r.exception || '', owner: r.owner || '', note: r.note || ''
       };
       const cves = String(r.cve || '').split(/[,;\s]+/).filter(c => /^CVE-/i.test(c)).map(c => c.toUpperCase());
       if (cves.length) {
@@ -776,17 +783,28 @@
     close.addEventListener('click', () => { box.hidden = true; });
     head.appendChild(title); head.appendChild(close); box.appendChild(head);
     const meta = document.createElement('div'); meta.className = 'hd-meta';
-    meta.textContent = `嚴重度 ${r.risk} · CVSS ${r.cvss == null ? '—' : r.cvss} · VPR ${r.vpr == null ? '—' : r.vpr} · EPSS ${r.epss == null ? '—' : (r.epss * 100).toFixed(1) + '%'} · Port ${r.port || '—'}`;
+    const portTxt = (r.port || '—') + (r.protocol ? ' / ' + r.protocol : '');
+    meta.textContent = `嚴重度 ${r.risk} · CVSS ${r.cvss == null ? '—' : r.cvss} · VPR ${r.vpr == null ? '—' : r.vpr} · EPSS ${r.epss == null ? '—' : (r.epss * 100).toFixed(1) + '%'} · Port ${portTxt}`;
     box.appendChild(meta);
-    function section(label, text) {
+    function section(label, text, pre) {
+      if (text == null || text === '') return;
       const wrap = document.createElement('div'); wrap.className = 'hd-sec';
       const l = document.createElement('div'); l.className = 'hd-label'; l.textContent = label;
-      const t = document.createElement('div'); t.textContent = text || '（無）';
+      const t = document.createElement('div'); if (pre) t.className = 'hd-pre'; t.textContent = text;
       wrap.appendChild(l); wrap.appendChild(t); box.appendChild(wrap);
     }
+    // 資產資訊（DNS / OS / MAC）合併一行呈現
+    const asset = [r.dnsName && ('DNS：' + r.dnsName), r.os && ('OS：' + r.os), r.mac && ('MAC：' + r.mac)].filter(Boolean).join('　');
+    if (asset) section('資產資訊', asset);
     section('弱點名稱', r.name);
     if (r.synopsis) section('摘要', r.synopsis);
+    section('說明（Description）', r.description);
     section('處理方式（Solution）', r.solution);
+    section('Plugin Output', r.pluginOutput, true);
+    section('參考（See Also）', r.seeAlso);
+    // 處理狀態 / 例外 / 負責人 / 備註（正式報告追蹤欄位）
+    const track = [r.disposition && ('處理狀態：' + r.disposition), r.exception && ('例外原因：' + r.exception), r.owner && ('負責人：' + r.owner), r.note && ('備註：' + r.note)].filter(Boolean).join('　');
+    if (track) section('處理追蹤', track);
     box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
@@ -895,17 +913,28 @@
     const st = S.stats;
     const title = $('#r-title').value.trim() || 'Nessus 弱點掃描比對報告';
     const org = $('#r-org').value.trim();
+    const owner = $('#r-owner').value.trim();
+    const notes = $('#r-notes').value.trim();
     const opt = {
       exec: $('#r-exec').checked, severity: $('#r-severity').checked, diffchart: $('#r-diffchart').checked,
       quadrant: $('#r-quadrant').checked, priority: $('#r-priority').checked, findings: $('#r-findings').checked,
-      useFilter: $('#r-findings-filter').checked, highOnly: $('#r-findings-highonly').checked
+      useFilter: $('#r-findings-filter').checked, highOnly: $('#r-findings-highonly').checked,
+      track: $('#r-findings-track').checked
     };
     const now = new Date().toLocaleString('zh-TW');
 
     let body = '';
     body += `<h1>${escapeXml(title)}</h1>`;
-    body += `<p class="meta">${org ? '單位／專案：' + escapeXml(org) + ' · ' : ''}產生時間：${escapeXml(now)}`;
-    body += ` · 基準：${escapeXml(S.old ? S.old.name : '（無）')} · 當前：${escapeXml(S.new ? S.new.name : '（無）')}</p>`;
+    // 報表來源與產製資訊（來源檔名、掃描時間、產生時間、負責人）——正式報告可追溯性
+    let metaLine = '';
+    if (org) metaLine += '單位／專案：' + escapeXml(org) + ' · ';
+    if (owner) metaLine += '負責人：' + escapeXml(owner) + ' · ';
+    metaLine += '產生時間：' + escapeXml(now);
+    body += `<p class="meta">${metaLine}</p>`;
+    const oScan = S.scanTime && S.scanTime.old, nScan = S.scanTime && S.scanTime.new;
+    body += `<p class="meta">基準來源：${escapeXml(S.old ? S.old.name : '（無）')}${oScan ? '（掃描時間：' + escapeXml(oScan) + '）' : ''}` +
+      ` · 當前來源：${escapeXml(S.new ? S.new.name : '（無）')}${nScan ? '（掃描時間：' + escapeXml(nScan) + '）' : ''}</p>`;
+    if (notes) body += `<p class="note">備註：${escapeXml(notes)}</p>`;
 
     if (opt.exec) {
       body += `<h2>執行摘要</h2><div class="kpis">`;
@@ -941,7 +970,7 @@
       if (rows.length > CAP) { rows = sortRows(rows.slice()).slice(0, CAP); capped = true; }
       body += `<h2>弱點明細${opt.highOnly ? '（僅 Critical / High）' : ''}${opt.useFilter ? '（套用目前篩選）' : ''}</h2>`;
       if (capped) body += `<p class="note">資料量大，僅列出風險最高的前 ${CAP} 筆。</p>`;
-      body += findingsTableHTML(rows);
+      body += findingsTableHTML(rows, opt.track);
     }
 
     const css = `
@@ -971,11 +1000,11 @@
     }
     return h + '</tbody></table>';
   }
-  function findingsTableHTML(rows) {
+  function findingsTableHTML(rows, track) {
     const diff = S.stats.mode === 'diff';
-    let h = `<table><thead><tr>${diff ? '<th>狀態</th>' : ''}<th>主機 / IP</th><th>Plugin</th><th>弱點名稱</th><th>嚴重度</th><th>Port</th><th class="num">VPR</th><th class="num">EPSS</th><th>CVE</th></tr></thead><tbody>`;
+    let h = `<table><thead><tr>${diff ? '<th>狀態</th>' : ''}<th>主機 / IP</th><th>Plugin</th><th>弱點名稱</th><th>嚴重度</th><th>Port</th><th class="num">VPR</th><th class="num">EPSS</th><th>CVE</th>${track ? '<th>處理狀態</th><th>負責人</th>' : ''}</tr></thead><tbody>`;
     for (const r of rows) {
-      h += `<tr>${diff ? '<td class="s-' + r.status + '">' + escapeXml(STATUS_LABEL[r.status] || r.status) + '</td>' : ''}<td>${escapeXml(r.host)}</td><td>${escapeXml(r.pluginId)}</td><td>${escapeXml(r.name)}</td><td class="r-${r.risk}">${escapeXml(r.risk)}</td><td>${escapeXml(r.port)}</td><td class="num">${r.vpr == null ? '—' : r.vpr}</td><td class="num">${r.epss == null ? '—' : (r.epss * 100).toFixed(1) + '%'}</td><td>${escapeXml(r.cve)}</td></tr>`;
+      h += `<tr>${diff ? '<td class="s-' + r.status + '">' + escapeXml(STATUS_LABEL[r.status] || r.status) + '</td>' : ''}<td>${escapeXml(r.host)}</td><td>${escapeXml(r.pluginId)}</td><td>${escapeXml(r.name)}</td><td class="r-${r.risk}">${escapeXml(r.risk)}</td><td>${escapeXml(r.port)}</td><td class="num">${r.vpr == null ? '—' : r.vpr}</td><td class="num">${r.epss == null ? '—' : (r.epss * 100).toFixed(1) + '%'}</td><td>${escapeXml(r.cve)}</td>${track ? '<td>' + escapeXml(r.disposition || '—') + '</td><td>' + escapeXml(r.owner || '—') + '</td>' : ''}</tr>`;
     }
     return h + '</tbody></table>';
   }
@@ -998,7 +1027,24 @@
   // ---------------------------------------------------------------------------
   // 14. UI：分頁 / 匯入 / 事件
   // ---------------------------------------------------------------------------
-  function busy(on, text) { const b = $('#busy'); if (text) $('#busy-text').textContent = text; b.hidden = !on; }
+  function busy(on, text) {
+    const b = $('#busy'); if (text) $('#busy-text').textContent = text;
+    $('#busy-progress').hidden = true; $('#busy-cancel').hidden = true; $('#busy-sub').textContent = '';
+    b.hidden = !on;
+  }
+  function showProgress(on, slot, fname) {
+    const b = $('#busy');
+    if (!on) { b.hidden = true; return; }
+    $('#busy-text').textContent = `讀取${slot === 'old' ? '基準' : '當前'}掃描：${fname}`;
+    $('#busy-bar').style.width = '0%'; $('#busy-progress').hidden = false;
+    $('#busy-sub').textContent = '0%'; $('#busy-cancel').hidden = false;
+    b.hidden = false;
+  }
+  function updateProgress(frac, rows) {
+    const pct = Math.round(Math.min(1, frac) * 100);
+    $('#busy-bar').style.width = pct + '%';
+    $('#busy-sub').textContent = `${pct}%　已讀 ${fmt(rows)} 列`;
+  }
   function toast(msg, kind) { const m = $('#import-msg'); m.className = 'import-msg' + (kind ? ' ' + kind : ''); m.textContent = msg; }
 
   function switchTab(name) {
@@ -1013,30 +1059,58 @@
   let pendingSlot = null;
   function pickFile(slot) { pendingSlot = slot; $('#file-input').value = ''; $('#file-input').click(); }
 
+  const MAX_IMPORT_BYTES = 200 * 1024 * 1024; // 檔案大小上限 200 MB
+  const raf = () => new Promise(r => requestAnimationFrame(() => r()));
+
   function handleFile(slot, file) {
     if (!file) return;
     if (!/\.csv$/i.test(file.name) && file.type && file.type.indexOf('csv') === -1) {
       toast('請選擇 .csv 檔案（Nessus 匯出）', 'error'); Log.warn('拒絕非 CSV 檔：' + file.name); return;
     }
-    busy(true, '讀取檔案中…');
-    Log.info(`開始匯入（${slot === 'old' ? '基準' : '當前'}）：${file.name}（${(file.size / 1024).toFixed(0)} KB）`);
-    const reader = new FileReader();
-    reader.onerror = () => { busy(false); Log.error('讀取檔案失敗：' + file.name); toast('讀取檔案失敗', 'error'); };
-    reader.onload = () => {
-      // 讓遮罩先繪出，再做較重的解析
-      setTimeout(() => {
-        try { processCSV(slot, file.name, reader.result); }
-        catch (err) { Log.error('解析例外：' + err.message); toast('解析失敗：' + err.message, 'error'); }
-        finally { busy(false); }
-      }, 30);
-    };
-    reader.readAsText(file, 'UTF-8');
+    if (file.size > MAX_IMPORT_BYTES) {
+      toast(`檔案過大：${(file.size / 1048576).toFixed(0)} MB，上限 ${MAX_IMPORT_BYTES / 1048576} MB。`, 'error');
+      Log.error(`拒絕超大檔：${file.name}（${(file.size / 1048576).toFixed(0)} MB）`); return;
+    }
+    readAndParse(slot, file);
   }
 
-  function processCSV(slot, fname, text) {
+  // 串流分塊讀取 + 解析：不阻塞 UI、顯示進度、可取消
+  async function readAndParse(slot, file) {
+    S.cancelImport = false;
+    Log.info(`開始匯入（${slot === 'old' ? '基準' : '當前'}）：${file.name}（${(file.size / 1024).toFixed(0)} KB）`);
+    showProgress(true, slot, file.name);
     const t0 = performance.now();
-    const raw = parseCSV(text);
-    if (!raw.length) { toast('CSV 沒有內容', 'error'); Log.warn('空 CSV：' + fname); return; }
+    const rawRows = [];
+    const parser = NCore.createStreamParser(r => rawRows.push(r));
+    const dec = new TextDecoder('utf-8');
+    const total = file.size || 1; let read = 0, lastPaint = 0;
+    try {
+      const reader = file.stream().getReader();
+      while (true) {
+        if (S.cancelImport) { try { await reader.cancel(); } catch (e) { } Log.warn('使用者取消匯入：' + file.name); showProgress(false); return; }
+        const { done, value } = await reader.read();
+        if (done) break;
+        read += value.byteLength;
+        parser.push(dec.decode(value, { stream: true }));
+        const now = performance.now();
+        if (now - lastPaint > 60) { lastPaint = now; updateProgress(read / total, rawRows.length); await raf(); }
+      }
+      parser.push(dec.decode()); parser.end();
+    } catch (err) {
+      Log.error('讀取/解析失敗：' + err.message); toast('讀取檔案失敗：' + err.message, 'error'); showProgress(false); return;
+    }
+    updateProgress(1, rawRows.length);
+    Log.info(`串流讀取完成：${rawRows.length} 列、耗時 ${(performance.now() - t0).toFixed(0)}ms`);
+    // 讓進度畫面收尾後再做正規化與重算
+    setTimeout(() => {
+      try { finishImport(slot, file.name, rawRows); }
+      catch (err) { Log.error('解析例外：' + err.message); toast('解析失敗：' + err.message, 'error'); }
+      finally { showProgress(false); }
+    }, 20);
+  }
+
+  function finishImport(slot, fname, raw) {
+    if (!raw.length) { toast('CSV 沒有內容（空檔）', 'error'); Log.warn('空 CSV：' + fname); return; }
     const headers = raw[0];
     const map = mapColumns(headers);
     const missingReq = REQUIRED.filter(k => map[k] < 0);
@@ -1047,27 +1121,31 @@
       Log.error(`匯入失敗：缺必要欄位 ${missingReq.join(',')}；表頭=[${headers.join(' | ')}]`);
       return;
     }
-    const { recs, skipped } = normalize(raw, map);
-    // 記錄缺少的選用欄位
+    const t0 = performance.now();
+    const { recs, skipped, issues, issueCount, dupes } = normalize(raw, map);
+    if (!recs.length) { toast('CSV 無有效資料列（皆缺 Host/Plugin ID）', 'error'); Log.warn('無有效列：' + fname); return; }
     const missingOpt = [];
     for (const k of ['name', 'risk', 'port', 'vpr', 'epss', 'cve']) if (map[k] < 0) missingOpt.push(k);
-    const slotObj = { name: fname, recs, map, missingOpt };
-    S[slot] = slotObj;
+    S[slot] = { name: fname, recs, map, missingOpt, issueCount, dupes };
+    S.scanTime[slot] = NCore.extractScanTime(recs);
 
-    const dt = (performance.now() - t0).toFixed(0);
-    Log.info(`解析完成（${slot === 'old' ? '基準' : '當前'}）：${recs.length} 筆記錄、${new Set(recs.map(r => r.host)).size} 台主機、耗時 ${dt}ms`);
+    Log.info(`正規化完成（${slot === 'old' ? '基準' : '當前'}）：${recs.length} 筆、${new Set(recs.map(r => r.host)).size} 台主機、耗時 ${(performance.now() - t0).toFixed(0)}ms`);
     if (skipped) Log.warn(`略過 ${skipped} 列（缺 Host 或 Plugin ID）`);
+    if (dupes) Log.warn(`偵測到 ${dupes} 筆重複（相同 Host/Plugin/Port/Protocol）`);
+    if (issueCount) { Log.warn(`數值異常 ${issueCount} 處，已標記為缺值（不夾值）`); issues.slice(0, 30).forEach(it => Log.warn(`  第 ${it.line} 列 ${it.field}="${it.raw}" → ${it.reason}`)); }
     if (missingOpt.length) Log.warn(`選用欄位缺少：${missingOpt.join(', ')}（相關圖表/欄位將降級顯示）`);
 
-    // 更新拖放區顯示
     const dz = $(slot === 'old' ? '#dz-old' : '#dz-new');
     dz.classList.add('loaded');
     $('[data-role=filename]', dz).textContent = `✓ ${fname}（${recs.length} 筆）`;
 
-    // 匯入訊息（含缺欄位提醒）
     let msg = `已載入 ${slot === 'old' ? '基準' : '當前'}掃描：${recs.length} 筆。`;
-    if (missingOpt.includes('vpr') || missingOpt.includes('epss')) msg += ' 註：此份缺少 ' + (['vpr', 'epss'].filter(x => missingOpt.includes(x)).map(x => x.toUpperCase()).join('/')) + '，優先排序圖表會以現有資料降級。';
-    toast(msg, missingOpt.length ? 'warn' : 'ok');
+    const notes = [];
+    if (dupes) notes.push(`${dupes} 筆重複`);
+    if (issueCount) notes.push(`${issueCount} 處數值異常已標記`);
+    if (missingOpt.includes('vpr') || missingOpt.includes('epss')) notes.push('缺 ' + ['vpr', 'epss'].filter(x => missingOpt.includes(x)).map(x => x.toUpperCase()).join('/') + '（圖表降級）');
+    if (notes.length) msg += ' 註：' + notes.join('；') + '（詳見執行 Log）。';
+    toast(msg, notes.length ? 'warn' : 'ok');
 
     recompute();
   }
@@ -1240,6 +1318,7 @@
       });
     });
     $('#file-input').addEventListener('change', e => { if (e.target.files[0]) handleFile(pendingSlot, e.target.files[0]); });
+    $('#busy-cancel').addEventListener('click', () => { S.cancelImport = true; });
 
     // 篩選
     $('#f-search').addEventListener('input', debounce(applyFilterSort, 180));

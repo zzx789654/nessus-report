@@ -6,16 +6,22 @@
  * 資安基線（資安分析師把關）：
  *  - contextIsolation:true / nodeIntegration:false / sandbox:true → renderer 無法直接碰 Node/OS。
  *  - webSecurity:true、嚴格 CSP（於 index.html meta）→ 純本機、無外連。
- *  - 封鎖對外導覽與開新視窗 → 離線工具不應被導去任何網址。
+ *  - 完全離線：以 session.webRequest 攔截所有非本機請求（http/https/ws/ftp…）一律封鎖，
+ *    並封鎖對外導覽、重新導向與開新視窗；連「交給系統瀏覽器開啟」都不做。
  *  - preload 僅透過 contextBridge 暴露「儲存檔案」單一功能，且在主行程二次驗證輸入。
  *  - 不使用任何持久化（無 session partition 落地、無快取寫入需求）；關窗即結束。
  */
 
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, session } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
 let mainWindow = null;
+
+// 僅允許本機來源（file:／about:blank／devtools）。其餘（http/https/ws/ftp…）皆視為對外。
+function isLocal(url) {
+  return typeof url === 'string' && (/^file:/i.test(url) || url === 'about:blank' || url === '' || /^devtools:/i.test(url));
+}
 
 // 關閉硬體加速可再降低記憶體/相容性風險（離線資料工具不需要 GPU）。
 app.disableHardwareAcceleration();
@@ -46,32 +52,24 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 
-  // 封鎖任何對外導覽（離線工具只允許載入本機檔案）
-  mainWindow.webContents.on('will-navigate', (event) => {
-    event.preventDefault();
-  });
+  // 封鎖任何對外導覽與重新導向（離線工具只允許本機 file: 內容）
+  const blockNav = (event, url) => { if (!isLocal(url)) event.preventDefault(); };
+  mainWindow.webContents.on('will-navigate', blockNav);
+  mainWindow.webContents.on('will-redirect', blockNav);
 
-  // 視窗開啟策略：
-  //  - about:blank（報表「預覽」用，內容為本 app 產生且已 escape 的安全 HTML）→ 放行，
-  //    但以無 Node 整合、無外部導覽的方式開啟，維持沙箱。
-  //  - http(s) 外連 → 交給系統瀏覽器，app 內拒絕。
-  //  - 其餘一律拒絕。
+  // 視窗開啟策略：僅放行 about:blank（報表「預覽」，內容為本 app 產生且已 escape 的本機 HTML）；
+  // 外部網址一律「拒絕且不交給系統瀏覽器」——完全離線、不對外開任何連結。
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (url === 'about:blank' || url === '') {
-      return {
-        action: 'allow',
-        overrideBrowserWindowOptions: {
-          webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true }
-        }
-      };
+      return { action: 'allow', overrideBrowserWindowOptions: { webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true } } };
     }
-    if (/^https?:\/\//i.test(url)) shell.openExternal(url);
     return { action: 'deny' };
   });
 
-  // 預覽子視窗本身也不得對外導覽
+  // 預覽子視窗同樣禁止對外導覽/重導
   mainWindow.webContents.on('did-create-window', (child) => {
-    child.webContents.on('will-navigate', (e) => e.preventDefault());
+    child.webContents.on('will-navigate', blockNav);
+    child.webContents.on('will-redirect', blockNav);
     child.removeMenu();
   });
 
@@ -81,6 +79,12 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  // 完全離線：攔截所有請求，非本機一律封鎖（縱深防禦，即使 CSP 被繞過也擋得住）。
+  session.defaultSession.webRequest.onBeforeRequest((details, cb) => {
+    cb({ cancel: !isLocal(details.url) });
+  });
+  // 拒絕任何權限請求（地理位置、通知、媒體…離線工具都不需要）
+  session.defaultSession.setPermissionRequestHandler((_wc, _perm, cb) => cb(false));
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
