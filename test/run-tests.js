@@ -99,6 +99,12 @@ let stats, priority;
   ok('優先分數遞減', priority[0].score >= priority[1].score && priority[1].score >= priority[2].score);
   const h10 = priority.find(h => h.host === '192.168.1.10');
   eq('.10 緊急數(VPR≥7&EPSS≥.5)', h10.urgent, 2);
+  // 每台主機 VPR/EPSS 加總與各嚴重度數量（熱力圖切換 / Top 主機堆疊用）
+  ok('.10 sumVpr = 9.8+9.1(+RC4已修不算當前) ≈ 18.9', Math.abs(h10.sumVpr - 18.9) < 0.01, 'sumVpr=' + h10.sumVpr);
+  ok('.10 sumEpss ≈ 0.975+0.90 = 1.875', Math.abs(h10.sumEpss - 1.875) < 0.001, 'sumEpss=' + h10.sumEpss);
+  eq('.10 Critical 數', h10.sev.Critical, 2);
+  eq('.10 Info 數', h10.sev.Info, 1);
+  eq('.10 弱點總數 = 各嚴重度加總', h10.count, h10.sev.Critical + h10.sev.High + h10.sev.Medium + h10.sev.Low + h10.sev.Info);
 })();
 
 console.log('\n[5] 單份模式（只匯入一份）');

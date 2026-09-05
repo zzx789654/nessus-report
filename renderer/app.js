@@ -126,7 +126,8 @@
     qx: 'epss',  // 四象限橫軸：'epss' 或 'vpr'（縱軸固定 CVSS v2.0）
     // 風險圖表的 IP 篩選（多選）；為所選主機集合，size===主機總數 表示全選
     chartHosts: new Set(),
-    ipSort: 'risk'  // IP 選單排序：'risk'（風險降序）或 'ip'（IP 降序）
+    ipSort: 'risk',  // IP 選單排序：'risk'（風險降序）或 'ip'（IP 降序）
+    heatMetric: 'vpr'  // 熱力圖數值：'vpr'（Σ VPR）或 'epss'（Σ EPSS）
   };
 
   // ---------------------------------------------------------------------------
@@ -260,20 +261,43 @@
     return svg;
   }
 
+  // Top 風險主機：依「弱點總數」排序，單一長條依嚴重度堆疊（Info/Low/Medium/High/Critical）
+  // 使用者指定色：Info=藍、Low=綠、Medium=黃、High=紅、Critical=橘
+  const TOP_SEV = [
+    { k: 'Info', c: '#4f8cff' }, { k: 'Low', c: '#2dd4a7' }, { k: 'Medium', c: '#ffd23f' },
+    { k: 'High', c: '#ff4d6d' }, { k: 'Critical', c: '#ff8c42' }
+  ];
   function chartTopHosts(priority) {
-    const top = priority.slice(0, 10);
-    const W = 600, rowH = 26, H = Math.max(120, top.length * rowH + 40), pad = { l: 130, r: 40, t: 10, b: 20 };
+    const top = priority.slice().sort((a, b) => b.count - a.count).slice(0, 10);
+    const W = 640, rowH = 26, legendH = 22, pad = { l: 132, r: 48, t: 10 + legendH, b: 12 };
+    const H = Math.max(120, top.length * rowH + pad.t + pad.b);
     const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'xMidYMid meet', role: 'img' });
     if (!top.length) { svg.appendChild(svgEl('text', { x: W / 2, y: H / 2, 'text-anchor': 'middle' }, '無資料')); return svg; }
-    const maxV = Math.max(0.0001, ...top.map(h => h.score));
+    // 圖例（堆疊順序由左到右：Critical→Info，故圖例也照此顯示）
+    let lx = pad.l;
+    for (let i = TOP_SEV.length - 1; i >= 0; i--) {
+      const s = TOP_SEV[i];
+      svg.appendChild(svgEl('rect', { x: lx, y: 4, width: 10, height: 10, fill: s.c, rx: 2 }));
+      svg.appendChild(svgEl('text', { x: lx + 14, y: 13 }, s.k));
+      lx += 20 + s.k.length * 8 + 12;
+    }
+    const maxV = Math.max(1, ...top.map(h => h.count));
     const plotW = W - pad.l - pad.r;
     top.forEach((h, i) => {
       const yy = pad.t + i * rowH;
-      const w = (h.score / maxV) * plotW;
-      const color = h.crit ? RISK_COLORS.Critical : (h.high ? RISK_COLORS.High : RISK_COLORS.Medium);
       svg.appendChild(svgEl('text', { x: pad.l - 8, y: yy + rowH / 2 + 3, 'text-anchor': 'end' }, h.host.length > 20 ? h.host.slice(0, 19) + '…' : h.host));
-      svg.appendChild(svgEl('rect', { x: pad.l, y: yy + 4, width: Math.max(1, w), height: rowH - 10, fill: color, rx: 2 }));
-      svg.appendChild(svgEl('text', { x: pad.l + Math.max(1, w) + 5, y: yy + rowH / 2 + 3, class: 'bar-label' }, h.score.toFixed(2)));
+      // 由左到右堆疊：Critical, High, Medium, Low, Info
+      let x = pad.l;
+      for (let j = TOP_SEV.length - 1; j >= 0; j--) {
+        const s = TOP_SEV[j], n = h.sev[s.k] || 0;
+        if (!n) continue;
+        const w = (n / maxV) * plotW;
+        const rect = svgEl('rect', { x, y: yy + 4, width: Math.max(0.5, w), height: rowH - 10, fill: s.c });
+        rect.appendChild(svgEl('title', null, `${h.host} · ${s.k} ${n}`));
+        svg.appendChild(rect);
+        x += w;
+      }
+      svg.appendChild(svgEl('text', { x: x + 5, y: yy + rowH / 2 + 3, class: 'bar-label' }, fmt(h.count)));
     });
     return svg;
   }
@@ -387,32 +411,37 @@
     const i = Math.floor(x), f = x - i, a = stops[i], b = stops[Math.min(i + 1, stops.length - 1)];
     return `rgb(${Math.round(a[0] + (b[0] - a[0]) * f)},${Math.round(a[1] + (b[1] - a[1]) * f)},${Math.round(a[2] + (b[2] - a[2]) * f)})`;
   }
-  function chartHeatmap(priority) {
+  // 熱力圖：每格一台主機，數值 = 該主機 Σ VPR 或 Σ EPSS（面板內可切換）
+  function chartHeatmap(priority, metric) {
+    metric = metric === 'epss' ? 'epss' : 'vpr';
+    const valOf = h => metric === 'epss' ? h.sumEpss : h.sumVpr;
+    const fmtVal = v => metric === 'epss' ? v.toFixed(2) : v.toFixed(1);
+    const metricLabel = metric === 'epss' ? 'Σ EPSS' : 'Σ VPR';
     const wrap = document.createElement('div');
     if (!priority.length) { const e = document.createElement('div'); e.className = 'empty-state small'; e.textContent = '（尚無主機資料）'; wrap.appendChild(e); return wrap; }
     const CAP = 400;
-    const list = priority.slice(0, CAP);
-    const maxScore = Math.max(0.0001, ...list.map(h => h.score));
+    // 依所選指標由大到小排序後取前 N，讓高值主機集中在前
+    const list = priority.slice().sort((a, b) => valOf(b) - valOf(a)).slice(0, CAP);
+    const maxV = Math.max(0.0001, ...list.map(valOf));
     const grid = document.createElement('div'); grid.className = 'heatmap-grid';
     for (const h of list) {
+      const v = valOf(h), t = v / maxV;
       const tile = document.createElement('div'); tile.className = 'heat-tile';
-      const bg = heatColor(h.score / maxScore);
-      tile.style.background = bg;
-      // 依背景亮度決定文字顏色，確保可讀
-      tile.style.color = heatText(h.score / maxScore);
+      tile.style.background = heatColor(t);
+      tile.style.color = heatText(t);
       const ip = document.createElement('div'); ip.className = 'ht-ip'; ip.textContent = h.host;
-      const sc = document.createElement('div'); sc.className = 'ht-score'; sc.textContent = h.score.toFixed(2);
+      const sc = document.createElement('div'); sc.className = 'ht-score'; sc.textContent = `${metricLabel} ${fmtVal(v)}`;
       tile.appendChild(ip); tile.appendChild(sc);
-      tile.title = `${h.host}\n優先分數 ${h.score.toFixed(2)} · 最高VPR ${h.maxVpr.toFixed(1)} · 最高EPSS ${(h.maxEpss * 100).toFixed(0)}%\nCritical ${h.crit} · High ${h.high} · 弱點 ${h.count}`;
+      tile.title = `${h.host}\nΣ VPR ${h.sumVpr.toFixed(1)} · Σ EPSS ${h.sumEpss.toFixed(2)}\nCritical ${h.sev.Critical} · High ${h.sev.High} · Medium ${h.sev.Medium} · Low ${h.sev.Low} · Info ${h.sev.Info} · 弱點 ${h.count}`;
       grid.appendChild(tile);
     }
     wrap.appendChild(grid);
     const legend = document.createElement('div'); legend.className = 'heat-legend';
-    legend.appendChild(document.createTextNode('低風險 '));
+    legend.appendChild(document.createTextNode(`低（${metricLabel}） `));
     const scale = document.createElement('span'); scale.className = 'heat-scale'; legend.appendChild(scale);
-    legend.appendChild(document.createTextNode(` 高風險 · 共 ${priority.length} 台`));
+    legend.appendChild(document.createTextNode(` 高 · 共 ${priority.length} 台`));
     wrap.appendChild(legend);
-    if (priority.length > CAP) { const more = document.createElement('div'); more.className = 'heat-more'; more.textContent = `僅顯示風險最高的前 ${CAP} 台。`; wrap.appendChild(more); }
+    if (priority.length > CAP) { const more = document.createElement('div'); more.className = 'heat-more'; more.textContent = `僅顯示 ${metricLabel} 最高的前 ${CAP} 台。`; wrap.appendChild(more); }
     return wrap;
   }
   function heatText(t) { // 高風險(紅)用白字，低風險(綠/黃)用深字
@@ -1091,9 +1120,24 @@
       recs, rows
     }));
     $('#chart-totals').replaceChildren(chartTotalsCompare(stats));
-    $('#chart-heatmap').replaceChildren(chartHeatmap(priority));
+    $('#chart-heatmap').replaceChildren(chartHeatmap(priority, S.heatMetric));
     $('#chart-severity2').replaceChildren(chartSeverity(stats.oldSev, stats.newSev, stats.mode));
     $('#chart-tophosts').replaceChildren(chartTopHosts(priority));
+    // 標示各圖資料來源
+    const single = chartSourceLabel();
+    setText('#src-quadrant', '資料來源：' + single);
+    setText('#src-heatmap', '資料來源：' + single);
+    setText('#src-tophosts', '資料來源：' + single);
+    const both = (S.stats.mode === 'diff') ? '資料來源：基準 vs 當前（對比）' : '資料來源：' + single;
+    setText('#src-totals', both);
+    setText('#src-severity', both);
+  }
+  function setText(sel, txt) { const el = $(sel); if (el) el.textContent = txt; }
+  // 單一資料集圖表的來源（有當前用當前，否則用基準）
+  function chartSourceLabel() {
+    if (S.new && S.new.recs.length) return `當前掃描（${S.new.name}）`;
+    if (S.old && S.old.recs.length) return `基準掃描（${S.old.name}）`;
+    return '—';
   }
 
   // --- 風險圖表 IP 多選篩選器 ---
@@ -1191,6 +1235,12 @@
       S.qmode = b.dataset.qmode;
       $$('#tab-charts .viewtoggle .seg[data-qmode]').forEach(x => x.classList.toggle('active', x === b));
       renderCharts();
+    }));
+    // 熱力圖指標切換（Σ VPR / Σ EPSS）→ 只重繪熱力圖
+    $$('#tab-charts .viewtoggle .seg[data-heat]').forEach(b => b.addEventListener('click', () => {
+      S.heatMetric = b.dataset.heat;
+      $$('#tab-charts .viewtoggle .seg[data-heat]').forEach(x => x.classList.toggle('active', x === b));
+      if (S.stats) renderCharts();
     }));
     // 橫軸切換（EPSS / VPR）→ 同步門檻輸入的範圍與預設值
     $$('#tab-charts .viewtoggle .seg[data-qx]').forEach(b => b.addEventListener('click', () => {

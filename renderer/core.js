@@ -258,11 +258,15 @@
     let anyEpss = false;
     for (const r of recs) {
       let h = map.get(r.host);
-      if (!h) { h = { host: r.host, score: 0, maxVpr: 0, maxEpss: 0, urgent: 0, crit: 0, high: 0, count: 0, added: addedByHost.get(r.host) || 0 }; map.set(r.host, h); }
+      if (!h) {
+        h = { host: r.host, score: 0, maxVpr: 0, maxEpss: 0, sumVpr: 0, sumEpss: 0, urgent: 0, crit: 0, high: 0, count: 0, added: addedByHost.get(r.host) || 0, sev: { Critical: 0, High: 0, Medium: 0, Low: 0, Info: 0 } };
+        map.set(r.host, h);
+      }
       h.count++;
-      if (r.vpr != null) h.maxVpr = Math.max(h.maxVpr, r.vpr);
-      if (r.epss != null) { h.maxEpss = Math.max(h.maxEpss, r.epss); anyEpss = true; }
+      if (r.vpr != null) { h.maxVpr = Math.max(h.maxVpr, r.vpr); h.sumVpr += r.vpr; }
+      if (r.epss != null) { h.maxEpss = Math.max(h.maxEpss, r.epss); h.sumEpss += r.epss; anyEpss = true; }
       if (r.vpr != null && r.epss != null) { h.score += (r.vpr / 10) * r.epss; if (r.vpr >= 7 && r.epss >= 0.5) h.urgent++; }
+      h.sev[r.risk] = (h.sev[r.risk] || 0) + 1;
       if (r.risk === 'Critical') h.crit++; else if (r.risk === 'High') h.high++;
     }
     const arr = Array.from(map.values());

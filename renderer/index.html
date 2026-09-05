@@ -159,7 +159,7 @@
           </div>
         </div>
         <div class="panel">
-          <h3>CVSS ×（EPSS / VPR）優先處理四象限</h3>
+          <h3>CVSS ×（EPSS / VPR）優先處理四象限 <span class="src-badge" id="src-quadrant"></span></h3>
           <p class="panel-hint">
             縱軸固定為 <b>CVSS v2.0</b>（漏洞本質嚴重度）；橫軸可切換 <b>EPSS</b>（被實際利用機率）或 <b>VPR</b>（Tenable 優先分數）。
             <b>右上角＝高嚴重度且高可利用性/高優先，最該先修</b>。顏色＝嚴重度，形狀＝本次新增（菱形）或持續（圓形）。
@@ -180,23 +180,29 @@
           <div id="chart-quadrant" class="chart-holder tall"></div>
         </div>
         <div class="panel">
-          <h3>漏洞總數與各嚴重度比較（基準 vs 當前）</h3>
+          <h3>漏洞總數與各嚴重度比較（基準 vs 當前） <span class="src-badge" id="src-totals"></span></h3>
           <p class="panel-hint">比較兩份掃描的漏洞總數與各嚴重度數量。每組左＝基準（半透明）、右＝當前（實色），下方為增減量（▲增加／▼減少）。</p>
           <div id="chart-totals" class="chart-holder"></div>
         </div>
         <div class="panel">
-          <h3>主機風險熱力圖</h3>
-          <p class="panel-hint">每格一台主機，顯示 IP 與優先分數，顏色越紅＝優先分數越高（依 IP 篩選即時更新）。一眼看出高風險主機群落；滑鼠移上顯示 Critical/High/弱點數等明細。</p>
+          <h3>主機風險熱力圖 <span class="src-badge" id="src-heatmap"></span></h3>
+          <p class="panel-hint">每格一台主機，數值為該主機<b>所有弱點的 VPR（或 EPSS）加總</b>，顏色越紅＝加總越高（依 IP 篩選即時更新）。用下方按鈕切換要看 Σ VPR 或 Σ EPSS；滑鼠移上顯示各嚴重度數量。</p>
+          <div class="quadrant-controls">
+            <div class="viewtoggle" role="tablist" aria-label="熱力圖指標">
+              <button type="button" class="seg active" data-heat="vpr">Σ VPR</button>
+              <button type="button" class="seg" data-heat="epss">Σ EPSS</button>
+            </div>
+          </div>
           <div id="chart-heatmap" class="chart-holder"></div>
         </div>
         <div class="overview-cols">
           <div class="panel">
-            <h3>嚴重度分佈（基準 vs 當前）</h3>
+            <h3>嚴重度分佈（基準 vs 當前） <span class="src-badge" id="src-severity"></span></h3>
             <div id="chart-severity2" class="chart-holder"></div>
           </div>
           <div class="panel">
-            <h3>Top 風險主機（依優先分數）</h3>
-            <p class="panel-hint">計算方式：先算每個弱點的風險 = <b>VPR ÷ 10 × EPSS</b>（0~1，同時反映影響與被利用機率）；主機優先分數 = 該主機<b>所有弱點風險的加總</b>。分數越高＝累積的緊急曝險越大，越該先修。圖表取分數最高的前 10 台。（若整份缺 EPSS，改以 Critical/High 數＋VPR 估算）</p>
+            <h3>Top 風險主機（依弱點總數） <span class="src-badge" id="src-tophosts"></span></h3>
+            <p class="panel-hint">依<b>單一主機的弱點總數</b>由多到少取前 10 台；每台一條長條，依嚴重度堆疊（<b>Info 藍／Low 綠／Medium 黃／High 紅／Critical 橘</b>），整條長度＝該主機弱點總數。右側數字為總數。</p>
             <div id="chart-tophosts" class="chart-holder"></div>
           </div>
         </div>

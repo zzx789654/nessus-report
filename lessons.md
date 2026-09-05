@@ -1,5 +1,14 @@
 # lessons — Secure SDLC 輪結與教訓
 
+## [2026-09-05] 輪結 Round 9 — 熱力圖 VPR/EPSS 加總切換、Top 主機改嚴重度堆疊、圖表標示來源（v1.6.0）
+
+- 需求：(1) 熱力圖改為單純 Σ VPR 或 Σ EPSS，面板內切換；(2) Top 風險主機改為依主機弱點總數、以嚴重度堆疊成一條長條（Info 藍/Low 綠/Medium 黃/High 紅/Critical 橘）；(3) 每張圖標示資料來源（基準/當前/對比）。
+- 前情：使用者問優先分數公式出處 → 誠實說明那是我自訂 heuristic（非官方標準），本輪即改為更直觀的「單純加總」與「純數量堆疊」，不再依賴自訂複合分數。
+- Dev：core `computeHostPriority` 每台主機加算 `sumVpr`/`sumEpss` 與完整 `sev{5級}`。chartHeatmap 依 metric 取 sumVpr/sumEpss、依該值排序著色；面板加 Σ VPR/Σ EPSS 切換。chartTopHosts 改為依 count 排序的水平堆疊長條（自訂色：Info#4f8cff/Low#2dd4a7/Medium#ffd23f/High#ff4d6d/Critical#ff8c42）+ 圖例。renderCharts 設定各圖 `#src-*` 來源徽章（單一來源=當前/基準檔名；totals/severity=基準 vs 當前對比）。
+- QA：核心 77 項全過（新增 sumVpr/sumEpss/sev 驗證）；端對端驗證熱力圖切換（Σ VPR 18.9↔Σ EPSS 1.88）、Top 主機堆疊+圖例、四來源徽章、0 錯誤。
+- 註記：使用者指定 High=紅、Critical=橘（與 app 其他處 Critical=紅 相反），已照指定實作並於回覆提醒可再翻轉。
+- 教訓：當自訂複合指標說不清出處時，回歸「使用者直覺可懂的原始量（加總/數量）」往往更好；不同圖表若要各自配色，用區域色表而非全域 RISK_COLORS，避免相互牽動。
+
 ## [2026-09-05] 輪結 Round 8 — 主畫面精簡、熱力圖改版、新增風險明細分頁（v1.5.0）
 
 - 需求：移除主畫面「離線·不記憶」說明與「清除資料」按鈕（改為關閉自動釋放）；嚴重度圖每根直條顯示數字；修熱力圖「沒顯示資訊」；移除「優先主機」分頁；Top 風險主機補計算說明；新增「風險明細」分頁（每 CVE 一列的矩陣，含處理方式，可選 CSV + 篩選）。
