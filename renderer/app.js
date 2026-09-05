@@ -310,11 +310,12 @@
   }
 
   // 軸定義（定義域上限、標題、刻度格式、預設門檻）
+  // ticks：刻度值陣列（避免用 max/5 產生醜刻度）。CVSS 上限設 11 留頭部空間，避免 CVSS=10 的點貼齊上緣/被裁切。
   const AXES = {
-    epss:  { max: 1,  label: 'EPSS（被利用機率）', tick: v => v.toFixed(1), th: 0.5 },
-    vpr:   { max: 10, label: 'VPR（漏洞優先分數）', tick: v => String(v), th: 7 },
-    cvss2: { max: 10, label: 'CVSS v2.0', tick: v => String(v), th: 7 },
-    cvss3: { max: 10, label: 'CVSS v3.0（v2.0 缺）', tick: v => String(v), th: 7 }
+    epss:  { max: 1,  ticks: [0, 0.2, 0.4, 0.6, 0.8, 1], label: 'EPSS（被利用機率）', tick: v => v.toFixed(1), th: 0.5 },
+    vpr:   { max: 10, ticks: [0, 2, 4, 6, 8, 10], label: 'VPR（漏洞優先分數）', tick: v => String(v), th: 7 },
+    cvss2: { max: 11, ticks: [0, 2, 4, 6, 8, 10], label: 'CVSS v2.0', tick: v => String(v), th: 7 },
+    cvss3: { max: 11, ticks: [0, 2, 4, 6, 8, 10], label: 'CVSS v3.0（v2.0 缺）', tick: v => String(v), th: 7 }
   };
 
   // 四象限：縱軸固定 CVSS v2.0（整份缺 v2.0 時降級用 v3.0），橫軸可切 EPSS / VPR。
@@ -375,18 +376,18 @@
     const plotW = W - pad.l - pad.r, plotH = H - pad.t - pad.b;
     const X = v => pad.l + (Math.max(0, Math.min(xAx.max, v)) / xAx.max) * plotW;
     const Y = v => pad.t + plotH - (Math.max(0, Math.min(yAx.max, v)) / yAx.max) * plotH;
-    // 象限背景（右上=優先）
-    svg.appendChild(svgEl('rect', { x: X(xThresh), y: pad.t, width: X(xAx.max) - X(xThresh), height: Y(yThresh) - pad.t, fill: 'rgba(255,77,109,0.08)' }));
+    // 象限背景（右上=優先；上緣到 y 門檻）
+    svg.appendChild(svgEl('rect', { x: X(xThresh), y: Y(yAx.max), width: X(xAx.max) - X(xThresh), height: Y(yThresh) - Y(yAx.max), fill: 'rgba(255,77,109,0.08)' }));
     // 格線 + Y 刻度
-    for (let g = 0; g <= 5; g++) {
-      const vy = yAx.max * g / 5, yy = Y(vy);
+    for (const vy of yAx.ticks) {
+      const yy = Y(vy);
       svg.appendChild(svgEl('line', { x1: pad.l, y1: yy, x2: W - pad.r, y2: yy, class: 'grid-line' }));
-      svg.appendChild(svgEl('text', { x: pad.l - 6, y: yy + 3, 'text-anchor': 'end' }, yAx.tick(Math.round(vy * 10) / 10)));
+      svg.appendChild(svgEl('text', { x: pad.l - 6, y: yy + 3, 'text-anchor': 'end' }, yAx.tick(vy)));
     }
     // X 刻度
-    for (let g = 0; g <= 5; g++) {
-      const vx = xAx.max * g / 5, xx = X(vx);
-      svg.appendChild(svgEl('text', { x: xx, y: H - pad.b + 16, 'text-anchor': 'middle' }, xAx.tick(Math.round(vx * 100) / 100)));
+    for (const vx of xAx.ticks) {
+      const xx = X(vx);
+      svg.appendChild(svgEl('text', { x: xx, y: H - pad.b + 16, 'text-anchor': 'middle' }, xAx.tick(vx)));
     }
     // 門檻參考線
     svg.appendChild(svgEl('line', { x1: X(xThresh), y1: pad.t, x2: X(xThresh), y2: pad.t + plotH, class: 'ref-line' }));
@@ -546,28 +547,28 @@
 
   let vScrollBound = false;
   function renderVirtual() {
-    const viewport = $('#vviewport'), spacer = $('#vspacer'), rowsEl = $('#vrows'), emptyEl = $('#diff-empty');
-    const total = S.filtered.length;
-    spacer.style.height = (total * ROW_H) + 'px';
-    emptyEl.hidden = total > 0;
+    const viewport = $('#vviewport'), spacer = $('#vspacer'), emptyEl = $('#diff-empty');
+    spacer.style.height = (S.filtered.length * ROW_H) + 'px';
+    emptyEl.hidden = S.filtered.length > 0;
     if (!vScrollBound) {
-      viewport.addEventListener('scroll', () => paintRows(), { passive: true });
+      viewport.addEventListener('scroll', paintDiffRows, { passive: true });
       vScrollBound = true;
     }
     viewport.scrollTop = 0;
-    paintRows();
-
-    function paintRows() {
-      const scrollTop = viewport.scrollTop;
-      const vh = viewport.clientHeight;
-      const start = Math.max(0, Math.floor(scrollTop / ROW_H) - 4);
-      const end = Math.min(total, Math.ceil((scrollTop + vh) / ROW_H) + 4);
-      rowsEl.style.transform = `translateY(${start * ROW_H}px)`;
-      const frag = document.createDocumentFragment();
-      const tmpl = gridTemplate();
-      for (let i = start; i < end; i++) frag.appendChild(makeRow(S.filtered[i], tmpl));
-      rowsEl.replaceChildren(frag);
-    }
+    paintDiffRows();
+  }
+  // 模組層級：每次都即時讀取 S.filtered 與視窗高度，避免捕捉到過期的 total（否則捲到底會渲染不到）
+  function paintDiffRows() {
+    const viewport = $('#vviewport'), rowsEl = $('#vrows');
+    const total = S.filtered.length;
+    const scrollTop = viewport.scrollTop, vh = viewport.clientHeight;
+    const start = Math.max(0, Math.floor(scrollTop / ROW_H) - 4);
+    const end = Math.min(total, Math.ceil((scrollTop + vh) / ROW_H) + 4);
+    rowsEl.style.transform = `translateY(${start * ROW_H}px)`;
+    const frag = document.createDocumentFragment();
+    const tmpl = gridTemplate();
+    for (let i = start; i < end; i++) frag.appendChild(makeRow(S.filtered[i], tmpl));
+    rowsEl.replaceChildren(frag);
   }
 
   function makeRow(r, tmpl) {
@@ -733,21 +734,23 @@
 
   let dScrollBound = false;
   function renderDetailVirtual() {
-    const viewport = $('#dviewport'), spacer = $('#dspacer'), rowsEl = $('#drows'), emptyEl = $('#detail-empty');
+    const viewport = $('#dviewport'), spacer = $('#dspacer'), emptyEl = $('#detail-empty');
+    spacer.style.height = (S.detailFiltered.length * DROW_H) + 'px';
+    emptyEl.hidden = S.detailFiltered.length > 0;
+    if (!dScrollBound) { viewport.addEventListener('scroll', paintDetailRows, { passive: true }); dScrollBound = true; }
+    viewport.scrollTop = 0; paintDetailRows();
+  }
+  // 模組層級：即時讀取 S.detailFiltered，避免捕捉過期 total 導致捲到底渲染不到
+  function paintDetailRows() {
+    const viewport = $('#dviewport'), rowsEl = $('#drows');
     const total = S.detailFiltered.length;
-    spacer.style.height = (total * DROW_H) + 'px';
-    emptyEl.hidden = total > 0;
-    if (!dScrollBound) { viewport.addEventListener('scroll', paint, { passive: true }); dScrollBound = true; }
-    viewport.scrollTop = 0; paint();
-    function paint() {
-      const stp = viewport.scrollTop, vh = viewport.clientHeight;
-      const start = Math.max(0, Math.floor(stp / DROW_H) - 4);
-      const end = Math.min(total, Math.ceil((stp + vh) / DROW_H) + 4);
-      rowsEl.style.transform = `translateY(${start * DROW_H}px)`;
-      const tmpl = dgridTemplate(), frag = document.createDocumentFragment();
-      for (let i = start; i < end; i++) frag.appendChild(makeDetailRow(S.detailFiltered[i], tmpl));
-      rowsEl.replaceChildren(frag);
-    }
+    const stp = viewport.scrollTop, vh = viewport.clientHeight;
+    const start = Math.max(0, Math.floor(stp / DROW_H) - 4);
+    const end = Math.min(total, Math.ceil((stp + vh) / DROW_H) + 4);
+    rowsEl.style.transform = `translateY(${start * DROW_H}px)`;
+    const tmpl = dgridTemplate(), frag = document.createDocumentFragment();
+    for (let i = start; i < end; i++) frag.appendChild(makeDetailRow(S.detailFiltered[i], tmpl));
+    rowsEl.replaceChildren(frag);
   }
 
   function makeDetailRow(r, tmpl) {
@@ -1002,6 +1005,7 @@
     $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
     $$('.tabpane').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
     if (name === 'charts') renderCharts();
+    if (name === 'diff' && S.stats) paintDiffRows();       // 以正確視窗高度重繪（首次渲染時分頁可能隱藏、高度為 0）
     if (name === 'detail' && S.stats) applyDetailFilter(); // 切到分頁時以正確視窗高度重繪
     if (name === 'log') Log.rerender();
   }
