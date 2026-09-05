@@ -121,6 +121,7 @@
     rows: [],        // 差異列（diff rows）
     filtered: [],    // 篩選後
     sortKey: 'priority', sortDir: -1,
+    colFilters: {},   // 差異比對矩陣「各欄標題」的獨立篩選：{ 欄位key: 篩選值 }
     prioritySort: { key: 'score', dir: -1 },
     stats: null,
     hostPriority: [],
@@ -485,18 +486,30 @@
 
   function gridTemplate() { return COLS.map(c => c.w).join(' '); }
 
+  // 每欄標題的篩選型別：狀態/嚴重度用下拉、VPR/EPSS 用「≥」數值、其餘用文字包含
+  function colFilterType(c) {
+    if (c.key === 'status') return 'status';
+    if (c.key === 'risk') return 'risk';
+    if (c.type === 'num' || c.type === 'epss') return 'min';
+    return 'text';
+  }
+
   function buildHeader() {
     const head = $('#vthead');
     head.replaceChildren();
     head.style.gridTemplateColumns = gridTemplate();
+    // 第一列：可排序的欄位標題
     for (const c of COLS) {
       const th = document.createElement('div');
       th.className = 'th';
-      th.textContent = c.label;
+      const active = S.colFilters[c.key] != null && S.colFilters[c.key] !== '';
+      if (active) th.classList.add('filtered');
+      th.append(c.label);
       if (S.sortKey === c.key) {
         const a = document.createElement('span'); a.className = 'arrow'; a.textContent = S.sortDir > 0 ? '▲' : '▼';
         th.appendChild(a);
       }
+      if (active) { const dot = document.createElement('span'); dot.className = 'thf-dot'; dot.title = '此欄已套用篩選'; th.appendChild(dot); }
       th.addEventListener('click', () => {
         if (S.sortKey === c.key) S.sortDir = -S.sortDir;
         else { S.sortKey = c.key; S.sortDir = (c.type === 'num' || c.type === 'epss') ? -1 : 1; }
@@ -505,6 +518,49 @@
       });
       head.appendChild(th);
     }
+    // 第二列：各欄獨立篩選控制項（grid 自動換到第二排，與上方欄位對齊）
+    for (const c of COLS) head.appendChild(makeColFilterCell(c));
+  }
+
+  function makeColFilterCell(c) {
+    const cell = document.createElement('div');
+    cell.className = 'thf';
+    const type = colFilterType(c);
+    const cur = S.colFilters[c.key] != null ? String(S.colFilters[c.key]) : '';
+    const setVal = (v) => {
+      if (v === '' || v == null) delete S.colFilters[c.key]; else S.colFilters[c.key] = v;
+      applyFilterSort();
+      // 只更新標題列的「已篩選」標記，不整列重建（保留輸入焦點）
+      const idx = COLS.indexOf(c);
+      const th = $('#vthead').children[idx];
+      if (th) th.classList.toggle('filtered', v !== '' && v != null);
+    };
+    let ctrl;
+    if (type === 'status' || type === 'risk') {
+      ctrl = document.createElement('select');
+      ctrl.className = 'cf';
+      const opts = type === 'status'
+        ? [['', '全部'], ['added', STATUS_LABEL.added], ['removed', STATUS_LABEL.removed], ['persistent', STATUS_LABEL.persistent], ['changed', STATUS_LABEL.changed], ['single', STATUS_LABEL.single]]
+        : [['', '全部'], ['Critical', 'Critical'], ['High', 'High'], ['Medium', 'Medium'], ['Low', 'Low'], ['Info', 'Info']];
+      for (const [v, label] of opts) { const o = document.createElement('option'); o.value = v; o.textContent = label; ctrl.appendChild(o); }
+      ctrl.value = cur;
+      ctrl.addEventListener('change', () => setVal(ctrl.value));
+    } else if (type === 'min') {
+      ctrl = document.createElement('input');
+      ctrl.className = 'cf'; ctrl.type = 'number'; ctrl.placeholder = '≥';
+      ctrl.min = '0'; ctrl.step = c.type === 'epss' ? '0.01' : '0.1'; ctrl.max = c.type === 'epss' ? '1' : '10';
+      ctrl.value = cur;
+      ctrl.addEventListener('input', debounce(() => setVal(ctrl.value.trim()), 200));
+    } else {
+      ctrl = document.createElement('input');
+      ctrl.className = 'cf'; ctrl.type = 'search'; ctrl.placeholder = '篩選…'; ctrl.autocomplete = 'off';
+      ctrl.value = cur;
+      ctrl.addEventListener('input', debounce(() => setVal(ctrl.value.trim()), 180));
+    }
+    // 避免點擊篩選控制項時觸發上方標題的排序
+    cell.addEventListener('click', e => e.stopPropagation());
+    cell.appendChild(ctrl);
+    return cell;
   }
 
   function sortRows(rows) {
@@ -529,6 +585,16 @@
     const fepss = num($('#f-epss').value);
     const hideInfo = $('#f-hideinfo').checked;
     const actionOnly = $('#f-action').checked;
+    // 各欄標題的獨立篩選（僅取有值者，省每列迴圈成本）
+    const colF = [];
+    for (const c of COLS) {
+      const v = S.colFilters[c.key];
+      if (v == null || v === '') continue;
+      const type = colFilterType(c);
+      if (type === 'min') colF.push({ key: c.key, kind: 'min', n: num(v) });
+      else if (type === 'status' || type === 'risk') colF.push({ key: c.key, kind: 'eq', v });
+      else colF.push({ key: c.key, kind: 'has', v: String(v).toLowerCase() });
+    }
     const out = [];
     for (const r of S.rows) {
       if (hideInfo && r.riskLevel === 0) continue;                       // 收斂：隱藏 Info/None
@@ -538,6 +604,14 @@
       if (fvpr != null && (r.vpr == null || r.vpr < fvpr)) continue;
       if (fepss != null && (r.epss == null || r.epss < fepss)) continue;
       if (q && r._hay.indexOf(q) === -1) continue;                       // 用預建索引，省每鍵重算
+      // 逐欄標題篩選（AND）
+      let keep = true;
+      for (const f of colF) {
+        if (f.kind === 'eq') { if (r[f.key] !== f.v) { keep = false; break; } }
+        else if (f.kind === 'min') { if (f.n != null && (r[f.key] == null || r[f.key] < f.n)) { keep = false; break; } }
+        else { const hay = String(r[f.key] == null ? '' : r[f.key]).toLowerCase(); if (hay.indexOf(f.v) === -1) { keep = false; break; } }
+      }
+      if (!keep) continue;
       out.push(r);
     }
     // 排序：非明確欄位時預設用 priority
@@ -1328,7 +1402,9 @@
     $('#f-reset').addEventListener('click', () => {
       $('#f-search').value = ''; $('#f-status').value = ''; $('#f-risk').value = ''; $('#f-vpr').value = ''; $('#f-epss').value = '';
       $('#f-hideinfo').checked = true; $('#f-action').checked = false;
+      S.colFilters = {};        // 一併清除各欄標題篩選
       applyFilterSort();
+      buildHeader();            // 重建標題列以清空篩選控制項與標記
     });
 
     // 圖表控制
