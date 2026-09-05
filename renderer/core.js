@@ -60,7 +60,9 @@
     cvss3:    ['cvss v3.0 base score', 'cvss v3.1 base score', 'cvss v3 base score', 'cvss3 base score'],
     cvss2:    ['cvss v2.0 base score', 'cvss base score', 'cvss'],
     vpr:      ['vpr score', 'vpr', 'vulnerability priority rating'],
-    epss:     ['epss score', 'epss']
+    epss:     ['epss score', 'epss'],
+    synopsis: ['synopsis'],
+    solution: ['solution', 'remediation', 'steps to remediate']
   };
   const REQUIRED = ['host', 'pluginId'];
 
@@ -124,7 +126,9 @@
         cve: String(get(r, 'cve')).trim(),
         port: String(get(r, 'port')).trim(),
         protocol: String(get(r, 'protocol')).trim().toLowerCase(),
-        cvss, cvss2, cvss3, vpr: normVpr(num(get(r, 'vpr'))), epss: normEpss(num(get(r, 'epss')))
+        cvss, cvss2, cvss3, vpr: normVpr(num(get(r, 'vpr'))), epss: normEpss(num(get(r, 'epss'))),
+        synopsis: String(get(r, 'synopsis')).trim(),
+        solution: String(get(r, 'solution')).trim()
       });
     }
     return { recs, skipped };
