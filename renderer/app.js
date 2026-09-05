@@ -125,7 +125,10 @@
     hostFiltered: [],
     selectedHost: null,
     qmode: 'finding',
-    qx: 'epss'   // 四象限橫軸：'epss' 或 'vpr'（縱軸固定 CVSS v2.0）
+    qx: 'epss',  // 四象限橫軸：'epss' 或 'vpr'（縱軸固定 CVSS v2.0）
+    // 風險圖表的 IP 篩選（多選）；為所選主機集合，size===主機總數 表示全選
+    chartHosts: new Set(),
+    ipSort: 'risk'  // IP 選單排序：'risk'（風險降序）或 'ip'（IP 降序）
   };
 
   // ---------------------------------------------------------------------------
@@ -290,7 +293,9 @@
     const xKey = (cfg.xKey === 'vpr') ? 'vpr' : 'epss';
     const mode = (cfg.mode === 'host') ? 'host' : 'finding';
     const addedOnly = !!cfg.addedOnly;
-    const recs = (S.new && S.new.recs.length) ? S.new.recs : (S.old ? S.old.recs : []);
+    // 可由呼叫端傳入已依 IP 篩選的資料；未傳則用全量
+    const recs = cfg.recs || ((S.new && S.new.recs.length) ? S.new.recs : (S.old ? S.old.recs : []));
+    const rows = cfg.rows || S.rows;
 
     // Y 軸：固定 CVSS v2.0；若整份都沒有 v2.0 才降級用 v3.0
     const hasV2 = recs.some(r => r.cvss2 != null);
@@ -303,7 +308,7 @@
     if (mode === 'host') {
       // 一點 = 一台主機（取該主機 x/y 的最大值）→ 大量主機時避免點重疊
       const byHost = new Map();
-      const addedHosts = new Set(S.rows.filter(r => r.status === 'added').map(r => r.host));
+      const addedHosts = new Set(rows.filter(r => r.status === 'added').map(r => r.host));
       for (const r of recs) {
         const xv = r[xKey], yv = r[yKey];
         if (xv == null || yv == null) continue;
@@ -318,7 +323,7 @@
         pts.push({ x: h.x, y: h.y, risk, host: h.host, name: `${h.count} 筆弱點`, added: addedHosts.has(h.host), w: (h.x / xAx.max) * (h.y / yAx.max) });
       }
     } else {
-      const addedKeys = new Set(S.rows.filter(r => r.status === 'added').map(r => r.host + '|' + findingKey(r)));
+      const addedKeys = new Set(rows.filter(r => r.status === 'added').map(r => r.host + '|' + findingKey(r)));
       for (const r of recs) {
         const xv = r[xKey], yv = r[yKey];
         if (xv == null || yv == null) { missing++; continue; }
@@ -1084,6 +1089,10 @@
     S.hview = 'host';
     buildHostHeader();
     applyHostFilter();
+
+    // 風險圖表 IP 篩選（預設全選）；若正處於圖表分頁則即時重繪
+    initIpFilter();
+    if ($('#tab-charts').classList.contains('active')) renderCharts();
   }
 
   function renderOverviewCharts() {
@@ -1092,19 +1101,97 @@
   }
   function renderCharts() {
     if (!S.stats) return;
+    // 依 IP 篩選即時計算本分頁圖表的資料集（未選任何主機 → 顯示提示，不畫）
+    const sel = S.chartHosts;
+    const allHosts = S.hostPriority.length;
+    const useAll = sel.size === allHosts && allHosts > 0;
+    const keep = r => useAll || sel.has(r.host);
+    const oldRecs = (S.old ? S.old.recs : []).filter(keep);
+    const newRecs = (S.new ? S.new.recs : []).filter(keep);
+    const rows = useAll ? S.rows : S.rows.filter(keep);
+    const stats = NCore.computeStats(oldRecs, newRecs, rows);
+    const priority = NCore.computeHostPriority(oldRecs, newRecs, rows);
+    const recs = newRecs.length ? newRecs : oldRecs;
+
+    const empty = (sel.size === 0 && allHosts > 0);
+    if (empty) {
+      ['#chart-quadrant', '#chart-totals', '#chart-heatmap', '#chart-severity2', '#chart-tophosts'].forEach(s => {
+        const el = $(s); el.replaceChildren(); const d = document.createElement('div'); d.className = 'empty-state small'; d.textContent = '未選取任何主機，請於上方「IP 篩選」勾選。'; el.appendChild(d);
+      });
+      return;
+    }
     $('#chart-quadrant').replaceChildren(chartQuadrant({
       xKey: S.qx, mode: S.qmode, addedOnly: $('#q-added-only').checked,
-      xThresh: num($('#q-xthresh').value), yThresh: num($('#q-ythresh').value)
+      xThresh: num($('#q-xthresh').value), yThresh: num($('#q-ythresh').value),
+      recs, rows
     }));
-    $('#chart-totals').replaceChildren(chartTotalsCompare(S.stats));
-    $('#chart-heatmap').replaceChildren(chartHeatmap(S.hostPriority));
-    $('#chart-severity2').replaceChildren(chartSeverity(S.stats.oldSev, S.stats.newSev, S.stats.mode));
-    $('#chart-tophosts').replaceChildren(chartTopHosts(S.hostPriority));
+    $('#chart-totals').replaceChildren(chartTotalsCompare(stats));
+    $('#chart-heatmap').replaceChildren(chartHeatmap(priority));
+    $('#chart-severity2').replaceChildren(chartSeverity(stats.oldSev, stats.newSev, stats.mode));
+    $('#chart-tophosts').replaceChildren(chartTopHosts(priority));
+  }
+
+  // --- 風險圖表 IP 多選篩選器 ---
+  const scheduleChartRender = debounce(renderCharts, 150);
+
+  function ipToNum(host) {
+    const m = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(String(host).trim());
+    if (!m) return -1; // 非 IPv4 → 降序時排最後
+    return (+m[1]) * 16777216 + (+m[2]) * 65536 + (+m[3]) * 256 + (+m[4]);
+  }
+  function sortedHostList() {
+    const arr = S.hostPriority.slice();
+    if (S.ipSort === 'ip') arr.sort((a, b) => ipToNum(b.host) - ipToNum(a.host) || b.host.localeCompare(a.host));
+    else arr.sort((a, b) => b.score - a.score); // 風險降序
+    return arr;
+  }
+  function updateIpButton() {
+    const total = S.hostPriority.length, sel = S.chartHosts.size;
+    const btn = $('#ip-ms-btn');
+    btn.textContent = (total > 0 && sel === total) ? `全部主機（${fmt(total)}）▾` : `已選 ${fmt(sel)} / ${fmt(total)} 台 ▾`;
+    const sc = $('#ip-selcount'); if (sc) sc.textContent = `已選 ${fmt(sel)} / ${fmt(total)}`;
+  }
+  function buildIpFilter() {
+    const list = $('#ip-ms-list'); list.replaceChildren();
+    const q = $('#ip-ms-search').value.trim().toLowerCase();
+    let arr = sortedHostList();
+    if (q) arr = arr.filter(h => h.host.toLowerCase().indexOf(q) !== -1);
+    const CAP = 500; let capped = false;
+    if (arr.length > CAP) { arr = arr.slice(0, CAP); capped = true; }
+    const frag = document.createDocumentFragment();
+    for (const h of arr) {
+      const row = document.createElement('label'); row.className = 'ms-row';
+      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = S.chartHosts.has(h.host);
+      cb.addEventListener('change', () => { if (cb.checked) S.chartHosts.add(h.host); else S.chartHosts.delete(h.host); updateIpButton(); scheduleChartRender(); });
+      const dot = document.createElement('span'); dot.className = 'ms-dot'; dot.style.background = h.crit ? RISK_COLORS.Critical : (h.high ? RISK_COLORS.High : RISK_COLORS.Medium);
+      const ip = document.createElement('span'); ip.className = 'ms-ip'; ip.textContent = h.host;
+      const sc = document.createElement('span'); sc.className = 'ms-score'; sc.textContent = h.score.toFixed(2);
+      row.appendChild(cb); row.appendChild(dot); row.appendChild(ip); row.appendChild(sc);
+      frag.appendChild(row);
+    }
+    list.appendChild(frag);
+    if (capped) { const m = document.createElement('div'); m.className = 'ms-more'; m.textContent = `僅顯示前 ${CAP} 台，請用搜尋縮小範圍。`; list.appendChild(m); }
+    updateIpButton();
+  }
+  function toggleIpPanel(show) {
+    const panel = $('#ip-ms-panel'), btn = $('#ip-ms-btn');
+    const willShow = (show != null) ? show : panel.hidden;
+    panel.hidden = !willShow; btn.setAttribute('aria-expanded', String(willShow));
+    if (willShow) buildIpFilter();
+  }
+  // 資料載入後初始化 IP 篩選（預設全選）
+  function initIpFilter() {
+    S.chartHosts = new Set(S.hostPriority.map(h => h.host));
+    updateIpButton();
+    if ($('#ip-ms-panel') && !$('#ip-ms-panel').hidden) buildIpFilter();
   }
 
   function clearAll() {
     S.old = null; S.new = null; S.rows = []; S.filtered = []; S.stats = null; S.hostPriority = [];
     S.rowsByHost = new Map(); S.subnets = []; S.hostFiltered = []; S.selectedHost = null;
+    S.chartHosts = new Set();
+    $('#ip-ms-panel').hidden = true; $('#ip-ms-list').replaceChildren(); $('#ip-ms-btn').textContent = '全部主機 ▾';
+    if ($('#ip-ms-search')) $('#ip-ms-search').value = '';
     ['#dz-old', '#dz-new'].forEach(sel => { const dz = $(sel); dz.classList.remove('loaded'); $('[data-role=filename]', dz).textContent = ''; });
     $('#overview-empty').hidden = false; $('#overview-body').hidden = true;
     $('#vrows').replaceChildren(); $('#vspacer').style.height = '0px'; $('#diff-count').textContent = '—';
@@ -1167,6 +1254,19 @@
       if (S.qx === 'vpr') { xt.max = '10'; xt.step = '0.5'; xt.value = '7'; }
       else { xt.max = '1'; xt.step = '0.05'; xt.value = '0.5'; }
       renderCharts();
+    }));
+
+    // IP 篩選（風險圖表）
+    $('#ip-ms-btn').addEventListener('click', (e) => { e.stopPropagation(); toggleIpPanel(); });
+    $('#ip-ms-panel').addEventListener('click', (e) => e.stopPropagation());
+    document.addEventListener('click', () => { if (!$('#ip-ms-panel').hidden) toggleIpPanel(false); });
+    $('#ip-ms-search').addEventListener('input', debounce(buildIpFilter, 150));
+    $('#ip-all').addEventListener('click', () => { S.chartHosts = new Set(S.hostPriority.map(h => h.host)); buildIpFilter(); scheduleChartRender(); });
+    $('#ip-none').addEventListener('click', () => { S.chartHosts.clear(); buildIpFilter(); scheduleChartRender(); });
+    $$('#ip-ms-panel .viewtoggle .seg').forEach(b => b.addEventListener('click', () => {
+      S.ipSort = b.dataset.ipsort;
+      $$('#ip-ms-panel .viewtoggle .seg').forEach(x => x.classList.toggle('active', x === b));
+      buildIpFilter();
     }));
 
     // 優先主機分頁：檢視切換 / 搜尋 / 篩選

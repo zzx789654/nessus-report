@@ -136,6 +136,30 @@
 
       <!-- 風險圖表 -->
       <section id="tab-charts" class="tabpane" role="tabpanel">
+        <div class="panel chart-ipfilter">
+          <div class="ipf-bar">
+            <strong>IP 篩選</strong>
+            <div class="ms" id="ip-ms">
+              <button type="button" class="btn btn-ghost ms-btn" id="ip-ms-btn" aria-haspopup="true" aria-expanded="false">全部主機 ▾</button>
+              <div class="ms-panel" id="ip-ms-panel" hidden>
+                <div class="ms-tools">
+                  <input type="search" id="ip-ms-search" class="input" placeholder="搜尋 IP…" autocomplete="off" />
+                  <div class="viewtoggle" aria-label="IP 排序">
+                    <button type="button" class="seg active" data-ipsort="risk">風險↓</button>
+                    <button type="button" class="seg" data-ipsort="ip">IP↓</button>
+                  </div>
+                </div>
+                <div class="ms-actions">
+                  <button type="button" class="btn btn-ghost" id="ip-all">全選</button>
+                  <button type="button" class="btn btn-ghost" id="ip-none">全不選</button>
+                  <span id="ip-selcount" class="result-count"></span>
+                </div>
+                <div class="ms-list" id="ip-ms-list"></div>
+              </div>
+            </div>
+            <span class="ipf-hint">本分頁所有圖表即時依所選主機更新；預設<b>全部主機</b>，選單依<b>風險分數降序</b>排列。</span>
+          </div>
+        </div>
         <div class="panel">
           <h3>CVSS ×（EPSS / VPR）優先處理四象限</h3>
           <p class="panel-hint">
