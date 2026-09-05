@@ -486,15 +486,76 @@
 
   function gridTemplate() { return COLS.map(c => c.w).join(' '); }
 
-  // 每欄標題的篩選型別：狀態/嚴重度用下拉、VPR/EPSS 用「≥」數值、其餘用文字包含
-  function colFilterType(c) {
-    if (c.key === 'status') return 'status';
-    if (c.key === 'risk') return 'risk';
-    if (c.type === 'num' || c.type === 'epss') return 'min';
-    return 'text';
+  // 差異矩陣欄位標題篩選：全部採「下拉 + 核取方塊複選」。
+  // VPR/EPSS 這類連續數值改為區間分級複選；其餘欄位以「該欄實際出現過的值」為選項。
+  const VPR_BUCKETS = [
+    { id: '9-10', label: '9–10（極高）', test: v => v >= 9 },
+    { id: '7-9', label: '7–9（高）', test: v => v >= 7 && v < 9 },
+    { id: '4-7', label: '4–7（中）', test: v => v >= 4 && v < 7 },
+    { id: '0-4', label: '0–4（低）', test: v => v >= 0 && v < 4 }
+  ];
+  const EPSS_BUCKETS = [
+    { id: 'e90', label: '≥ 90%', test: v => v >= 0.9 },
+    { id: 'e50', label: '50–90%', test: v => v >= 0.5 && v < 0.9 },
+    { id: 'e10', label: '10–50%', test: v => v >= 0.1 && v < 0.5 },
+    { id: 'e0', label: '< 10%', test: v => v >= 0 && v < 0.1 }
+  ];
+  function bucketsFor(c) { return c.key === 'vpr' ? VPR_BUCKETS : (c.key === 'epss' ? EPSS_BUCKETS : null); }
+
+  // IP 感知排序（IPv4 逐段比較，其餘退回字串比較）
+  function ipCompare(a, b) {
+    const ma = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(a), mb = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(b);
+    if (ma && mb) { for (let i = 1; i <= 4; i++) { const d = (+ma[i]) - (+mb[i]); if (d) return d; } return 0; }
+    if (ma && !mb) return -1; if (!ma && mb) return 1;
+    return a.localeCompare(b);
   }
 
+  // 取一列在某欄的「選項鍵」集合（CVE 一列可能多個 → 多鍵；數值 → 對應區間；空值 → 特殊鍵）
+  function colKeysOf(c, r) {
+    const bk = bucketsFor(c);
+    if (bk) { const v = r[c.key]; if (v == null) return ['__none__']; for (const b of bk) if (b.test(v)) return [b.id]; return ['__none__']; }
+    if (c.key === 'cve') {
+      const toks = String(r.cve || '').split(/[,;\s]+/).filter(x => /^CVE-/i.test(x)).map(x => x.toUpperCase());
+      return toks.length ? Array.from(new Set(toks)) : ['__none__'];
+    }
+    const val = r[c.key];
+    return [(val == null || val === '') ? '__blank__' : String(val)];
+  }
+
+  function colKeyLabel(c, key) {
+    if (key === '__none__') return c.key === 'cve' ? '（無 CVE）' : '（無數值）';
+    if (key === '__blank__') return '（空白）';
+    if (c.key === 'status') return STATUS_LABEL[key] || key;
+    const bk = bucketsFor(c); if (bk) { const b = bk.find(x => x.id === key); return b ? b.label : key; }
+    return key;
+  }
+
+  // 列出某欄可選項（依實際出現的值，固定/數值排序），空值/無值置於最後
+  function colOptions(c) {
+    const present = new Set();
+    for (const r of S.rows) for (const k of colKeysOf(c, r)) present.add(k);
+    let ordered;
+    if (c.key === 'status') ordered = ['added', 'removed', 'persistent', 'changed', 'single'];
+    else if (c.key === 'risk') ordered = ['Critical', 'High', 'Medium', 'Low', 'Info'];
+    else if (bucketsFor(c)) ordered = bucketsFor(c).map(b => b.id);
+    else {
+      ordered = Array.from(present).filter(k => k !== '__none__' && k !== '__blank__');
+      if (c.key === 'port' || c.key === 'pluginId') ordered.sort((a, b) => (parseFloat(a) || 0) - (parseFloat(b) || 0));
+      else if (c.key === 'host') ordered.sort(ipCompare);
+      else ordered.sort((a, b) => a.localeCompare(b));
+    }
+    const res = ordered.filter(k => present.has(k));
+    if (present.has('__blank__')) res.push('__blank__');
+    if (present.has('__none__')) res.push('__none__');
+    return res;
+  }
+
+  let _colMenu = null;
+  function closeColMenu() { if (_colMenu) { _colMenu.remove(); _colMenu = null; document.removeEventListener('pointerdown', onColMenuOutside, true); } }
+  function onColMenuOutside(e) { if (_colMenu && !_colMenu.contains(e.target) && !e.target.closest('.cf-btn')) closeColMenu(); }
+
   function buildHeader() {
+    closeColMenu();
     const head = $('#vthead');
     head.replaceChildren();
     head.style.gridTemplateColumns = gridTemplate();
@@ -502,7 +563,8 @@
     for (const c of COLS) {
       const th = document.createElement('div');
       th.className = 'th';
-      const active = S.colFilters[c.key] != null && S.colFilters[c.key] !== '';
+      const sel = S.colFilters[c.key];
+      const active = Array.isArray(sel) && sel.length > 0;
       if (active) th.classList.add('filtered');
       th.append(c.label);
       if (S.sortKey === c.key) {
@@ -518,50 +580,96 @@
       });
       head.appendChild(th);
     }
-    // 第二列：各欄獨立篩選控制項（grid 自動換到第二排，與上方欄位對齊）
+    // 第二列：各欄下拉複選按鈕（grid 自動換到第二排，與上方欄位對齊）
     for (const c of COLS) head.appendChild(makeColFilterCell(c));
   }
 
   function makeColFilterCell(c) {
     const cell = document.createElement('div');
     cell.className = 'thf';
-    const type = colFilterType(c);
-    const cur = S.colFilters[c.key] != null ? String(S.colFilters[c.key]) : '';
-    const setVal = (v) => {
-      if (v === '' || v == null) delete S.colFilters[c.key]; else S.colFilters[c.key] = v;
-      applyFilterSort();
-      // 只更新標題列的「已篩選」標記，不整列重建（保留輸入焦點）
-      const idx = COLS.indexOf(c);
-      const th = $('#vthead').children[idx];
-      if (th) th.classList.toggle('filtered', v !== '' && v != null);
-    };
-    let ctrl;
-    if (type === 'status' || type === 'risk') {
-      ctrl = document.createElement('select');
-      ctrl.className = 'cf';
-      const opts = type === 'status'
-        ? [['', '全部'], ['added', STATUS_LABEL.added], ['removed', STATUS_LABEL.removed], ['persistent', STATUS_LABEL.persistent], ['changed', STATUS_LABEL.changed], ['single', STATUS_LABEL.single]]
-        : [['', '全部'], ['Critical', 'Critical'], ['High', 'High'], ['Medium', 'Medium'], ['Low', 'Low'], ['Info', 'Info']];
-      for (const [v, label] of opts) { const o = document.createElement('option'); o.value = v; o.textContent = label; ctrl.appendChild(o); }
-      ctrl.value = cur;
-      ctrl.addEventListener('change', () => setVal(ctrl.value));
-    } else if (type === 'min') {
-      ctrl = document.createElement('input');
-      ctrl.className = 'cf'; ctrl.type = 'number'; ctrl.placeholder = '≥';
-      ctrl.min = '0'; ctrl.step = c.type === 'epss' ? '0.01' : '0.1'; ctrl.max = c.type === 'epss' ? '1' : '10';
-      ctrl.value = cur;
-      ctrl.addEventListener('input', debounce(() => setVal(ctrl.value.trim()), 200));
-    } else {
-      ctrl = document.createElement('input');
-      ctrl.className = 'cf'; ctrl.type = 'search'; ctrl.placeholder = '篩選…'; ctrl.autocomplete = 'off';
-      ctrl.value = cur;
-      ctrl.addEventListener('input', debounce(() => setVal(ctrl.value.trim()), 180));
-    }
-    // 避免點擊篩選控制項時觸發上方標題的排序
-    cell.addEventListener('click', e => e.stopPropagation());
-    cell.appendChild(ctrl);
+    cell.addEventListener('click', e => e.stopPropagation()); // 不觸發上方標題排序
+    const sel = S.colFilters[c.key];
+    const n = Array.isArray(sel) ? sel.length : 0;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cf-btn' + (n ? ' active' : '');
+    btn.textContent = n ? `${n} 項 ▾` : '全部 ▾';
+    btn.title = n ? '已選 ' + n + ' 項，點擊調整' : '點擊選取要顯示的項目（可複選）';
+    btn.addEventListener('click', () => { if (_colMenu && _colMenu._key === c.key) closeColMenu(); else openColMenu(c, btn); });
+    cell.appendChild(btn);
     return cell;
   }
+
+  function openColMenu(c, btn) {
+    closeColMenu();
+    const opts = colOptions(c);
+    const selected = new Set(Array.isArray(S.colFilters[c.key]) ? S.colFilters[c.key] : []);
+    const menu = document.createElement('div');
+    menu.className = 'cf-menu'; menu._key = c.key;
+    // 工具列：全選 / 清除
+    const tools = document.createElement('div'); tools.className = 'cf-tools';
+    const bAll = document.createElement('button'); bAll.type = 'button'; bAll.className = 'btn btn-ghost'; bAll.textContent = '全選';
+    const bClr = document.createElement('button'); bClr.type = 'button'; bClr.className = 'btn btn-ghost'; bClr.textContent = '清除';
+    const cnt = document.createElement('span'); cnt.className = 'cf-count';
+    tools.appendChild(bAll); tools.appendChild(bClr); tools.appendChild(cnt);
+    menu.appendChild(tools);
+    // 選項多時提供搜尋
+    let search = null;
+    if (opts.length > 8) {
+      search = document.createElement('input');
+      search.className = 'cf-search input'; search.type = 'search'; search.placeholder = '搜尋選項…'; search.autocomplete = 'off';
+      menu.appendChild(search);
+    }
+    const list = document.createElement('div'); list.className = 'cf-list';
+    menu.appendChild(list);
+
+    const apply = () => {
+      if (selected.size === 0) delete S.colFilters[c.key];
+      else S.colFilters[c.key] = Array.from(selected);
+      const nn = selected.size;
+      btn.textContent = nn ? `${nn} 項 ▾` : '全部 ▾';
+      btn.classList.toggle('active', nn > 0);
+      const idx = COLS.indexOf(c); const th = $('#vthead').children[idx];
+      if (th) th.classList.toggle('filtered', nn > 0);
+      cnt.textContent = nn ? `已選 ${nn}/${opts.length}` : `共 ${opts.length} 項`;
+      applyFilterSort();
+    };
+    const renderList = () => {
+      const q = search ? search.value.trim().toLowerCase() : '';
+      list.replaceChildren();
+      let shown = 0;
+      for (const key of opts) {
+        const label = colKeyLabel(c, key);
+        if (q && label.toLowerCase().indexOf(q) === -1) continue;
+        shown++;
+        const row = document.createElement('label'); row.className = 'cf-row';
+        const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = selected.has(key);
+        cb.addEventListener('change', () => { if (cb.checked) selected.add(key); else selected.delete(key); apply(); });
+        const txt = document.createElement('span'); txt.className = 'cf-txt'; txt.textContent = label;
+        row.appendChild(cb); row.appendChild(txt); list.appendChild(row);
+      }
+      if (!shown) { const e = document.createElement('div'); e.className = 'cf-empty'; e.textContent = '無相符選項'; list.appendChild(e); }
+    };
+    bAll.addEventListener('click', () => { for (const k of opts) selected.add(k); renderList(); apply(); });
+    bClr.addEventListener('click', () => { selected.clear(); renderList(); apply(); });
+    if (search) search.addEventListener('input', debounce(renderList, 120));
+    cnt.textContent = selected.size ? `已選 ${selected.size}/${opts.length}` : `共 ${opts.length} 項`;
+    renderList();
+
+    document.body.appendChild(menu);
+    // 以按鈕位置定位（fixed，避免被表格 overflow 裁切）；靠右不超出視窗
+    const r = btn.getBoundingClientRect();
+    const mw = Math.min(280, Math.max(200, r.width * 2));
+    let left = r.left; if (left + mw > window.innerWidth - 8) left = window.innerWidth - mw - 8;
+    menu.style.left = Math.max(8, left) + 'px';
+    menu.style.top = (r.bottom + 4) + 'px';
+    menu.style.width = mw + 'px';
+    _colMenu = menu;
+    if (search) search.focus();
+    setTimeout(() => document.addEventListener('pointerdown', onColMenuOutside, true), 0);
+  }
+  // 表格捲動 / 視窗縮放時關閉選單（fixed 定位不隨捲動）
+  window.addEventListener('resize', closeColMenu);
 
   function sortRows(rows) {
     const key = S.sortKey, dir = S.sortDir;
@@ -585,15 +693,11 @@
     const fepss = num($('#f-epss').value);
     const hideInfo = $('#f-hideinfo').checked;
     const actionOnly = $('#f-action').checked;
-    // 各欄標題的獨立篩選（僅取有值者，省每列迴圈成本）
+    // 各欄標題的下拉複選（僅取有選者）：欄內為 OR、跨欄為 AND
     const colF = [];
     for (const c of COLS) {
-      const v = S.colFilters[c.key];
-      if (v == null || v === '') continue;
-      const type = colFilterType(c);
-      if (type === 'min') colF.push({ key: c.key, kind: 'min', n: num(v) });
-      else if (type === 'status' || type === 'risk') colF.push({ key: c.key, kind: 'eq', v });
-      else colF.push({ key: c.key, kind: 'has', v: String(v).toLowerCase() });
+      const sel = S.colFilters[c.key];
+      if (Array.isArray(sel) && sel.length) colF.push({ c, set: new Set(sel) });
     }
     const out = [];
     for (const r of S.rows) {
@@ -604,12 +708,13 @@
       if (fvpr != null && (r.vpr == null || r.vpr < fvpr)) continue;
       if (fepss != null && (r.epss == null || r.epss < fepss)) continue;
       if (q && r._hay.indexOf(q) === -1) continue;                       // 用預建索引，省每鍵重算
-      // 逐欄標題篩選（AND）
+      // 逐欄標題複選篩選：該列在此欄的任一鍵命中所選集合即通過（欄內 OR），全部欄位皆須通過（跨欄 AND）
       let keep = true;
       for (const f of colF) {
-        if (f.kind === 'eq') { if (r[f.key] !== f.v) { keep = false; break; } }
-        else if (f.kind === 'min') { if (f.n != null && (r[f.key] == null || r[f.key] < f.n)) { keep = false; break; } }
-        else { const hay = String(r[f.key] == null ? '' : r[f.key]).toLowerCase(); if (hay.indexOf(f.v) === -1) { keep = false; break; } }
+        const keys = colKeysOf(f.c, r);
+        let hit = false;
+        for (const k of keys) if (f.set.has(k)) { hit = true; break; }
+        if (!hit) { keep = false; break; }
       }
       if (!keep) continue;
       out.push(r);

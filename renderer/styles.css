@@ -154,12 +154,24 @@ button { font-family: inherit; }
 .vthead .th .arrow { font-size: 10px; margin-left: 3px; color: var(--accent); }
 .vthead .th.filtered { color: var(--text); }
 .vthead .th .thf-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-left: 5px; vertical-align: middle; }
-/* 各欄標題篩選列（位於欄名下方，與欄位對齊） */
+/* 各欄標題篩選列（位於欄名下方，與欄位對齊）：下拉複選按鈕 */
 .vthead .thf { padding: 4px 6px 6px; border-top: 1px solid rgba(38,49,73,.6); min-width: 0; }
-.vthead .thf .cf { width: 100%; min-width: 0; box-sizing: border-box; background: var(--bg-2); border: 1px solid var(--line); color: var(--text); border-radius: 6px; padding: 3px 6px; font-size: 11.5px; }
-.vthead .thf .cf::placeholder { color: var(--text-faint); }
-.vthead .thf .cf:focus { outline: none; border-color: var(--accent); }
-.vthead .thf select.cf { cursor: pointer; }
+.vthead .thf .cf-btn { width: 100%; min-width: 0; box-sizing: border-box; background: var(--bg-2); border: 1px solid var(--line); color: var(--text-dim); border-radius: 6px; padding: 3px 6px; font-size: 11.5px; cursor: pointer; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vthead .thf .cf-btn:hover { color: var(--text); border-color: var(--accent); }
+.vthead .thf .cf-btn.active { color: var(--text); border-color: var(--accent); background: rgba(79,140,255,.12); }
+
+/* 欄位篩選浮動選單（append 到 body，fixed 定位避免被表格裁切） */
+.cf-menu { position: fixed; z-index: 60; background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 8px; }
+.cf-menu .cf-tools { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.cf-menu .cf-tools .btn { padding: 3px 8px; font-size: 12px; }
+.cf-menu .cf-count { margin-left: auto; font-size: 11px; color: var(--text-dim); }
+.cf-menu .cf-search { width: 100%; box-sizing: border-box; margin-bottom: 6px; font-size: 12px; padding: 4px 8px; }
+.cf-menu .cf-list { max-height: 260px; overflow-y: auto; border-top: 1px solid var(--line); padding-top: 4px; }
+.cf-menu .cf-row { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 6px; cursor: pointer; font-size: 12.5px; }
+.cf-menu .cf-row:hover { background: var(--bg-3); }
+.cf-menu .cf-row input { cursor: pointer; flex: none; }
+.cf-menu .cf-row .cf-txt { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.cf-menu .cf-empty { padding: 8px 6px; font-size: 12px; color: var(--text-faint); text-align: center; }
 .vviewport { position: relative; height: 60vh; overflow-y: auto; overflow-x: hidden; }
 .vspacer { position: absolute; top: 0; left: 0; width: 1px; }
 .vrows { position: absolute; top: 0; left: 0; right: 0; }
