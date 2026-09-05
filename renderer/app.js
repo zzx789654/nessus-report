@@ -408,7 +408,8 @@
         : `${p.host}${p.cve ? '\nCVE: ' + p.cve : ''}\n${p.name}\n${yAx.label} ${p.y} · ${xAx.label} ${p.x}`;
       const hit = svgEl('circle', { cx, cy, r: 8, fill: 'transparent' });
       hit.style.cursor = 'pointer';
-      hit.appendChild(svgEl('title', null, tipText)); // 原生後備
+      // 僅在「產報表」時附上原生 <title>（靜態 HTML 無 JS 事件）；畫面上改用自繪浮動提示，避免與原生 tooltip 重複出現
+      if (cfg.forReport) hit.appendChild(svgEl('title', null, tipText));
       hit.addEventListener('mouseenter', e => showTip(tipText, e));
       hit.addEventListener('mousemove', moveTip);
       hit.addEventListener('mouseleave', hideTip);
@@ -1128,7 +1129,7 @@
     if (opt.diffchart && st.mode === 'diff') body += `<h2>差異總覽</h2><div class="chart">${serialize(chartDiff(st))}</div>`;
     if (opt.quadrant) {
       const xLabel = S.qx === 'vpr' ? 'VPR' : 'EPSS';
-      body += `<h2>CVSS ×（${xLabel}）優先處理四象限</h2><p class="note">縱軸＝CVSS v2.0，橫軸＝${xLabel}；右上角（高嚴重度＋高${xLabel}）為最該優先處理者。</p><div class="chart">${serialize(chartQuadrant({ xKey: S.qx, mode: S.qmode }))}</div>`;
+      body += `<h2>CVSS ×（${xLabel}）優先處理四象限</h2><p class="note">縱軸＝CVSS v2.0，橫軸＝${xLabel}；右上角（高嚴重度＋高${xLabel}）為最該優先處理者。</p><div class="chart">${serialize(chartQuadrant({ xKey: S.qx, mode: S.qmode, forReport: true }))}</div>`;
     }
     if (opt.priority) {
       body += `<h2>優先處理主機（Top 20）</h2>` + priorityTableHTML(S.hostPriority.slice(0, 20));
