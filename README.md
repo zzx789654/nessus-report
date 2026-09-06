@@ -4,6 +4,35 @@
 
 > 以「不複雜、簡單、順手、低記憶體」為原則設計。主流程只有三步：**匯入兩份 CSV → 看結果 → 匯出報告**。
 
+**下載 Windows 版**：前往 [Releases](https://github.com/zzx789654/nessus-report/releases/latest) 下載安裝版 `Nessus-Diff-Setup-*.exe` 或免安裝版 `Nessus-Diff-Portable-*.exe`（未簽章，首次執行點「其他資訊 → 仍要執行」）。
+
+---
+
+## 畫面預覽
+
+**總覽** — KPI（總數 / 主機 / 新增 / 修復 / Critical / High / 新增 CVE）＋ 嚴重度分佈（基準 vs 當前）＋ 差異總覽
+
+![總覽](docs/screenshots/overview.png)
+
+**差異比對** — 以 IP 為主 Key 標記新增 / 已修復 / 持續 / 變更；**每個欄位標題下方可下拉複選篩選**（狀態、嚴重度、主機、Plugin、Port、CVE 為值清單；VPR / EPSS 為區間分級）
+
+![差異比對](docs/screenshots/diff-filter.png)
+
+**風險明細** — 每個 CVE 一列的矩陣（CVSS / VPR / EPSS / 處理方式），同樣支援欄位標題下拉複選、點列展開完整說明與 Solution
+
+![風險明細](docs/screenshots/detail.png)
+
+**風險圖表** — CVSS × EPSS/VPR 優先處理四象限（右上＝最該先修）與主機風險熱力圖（可切 Σ VPR / Σ EPSS）
+
+<p>
+  <img src="docs/screenshots/charts-quadrant.png" alt="四象限" width="49%" />
+  <img src="docs/screenshots/charts-heatmap.png" alt="熱力圖" width="49%" />
+</p>
+
+**HTML 報表** — 單一檔案、內嵌 SVG 圖表，可離線開啟或列印成 PDF
+
+![報表範例](docs/screenshots/report.png)
+
 ---
 
 ## 核心特性
@@ -13,7 +42,7 @@
 | 每次開啟重新匯入、不記憶 | 不使用任何 localStorage / IndexedDB / 檔案快取，資料僅存記憶體；**關閉視窗時作業系統自動回收全部記憶體** |
 | 風險明細（每個 CVE） | 「風險明細」分頁：每個 CVE 一列的矩陣（含 CVSS/VPR/EPSS/處理方式），可選基準/當前 CSV、即時篩選排序、點列展開摘要與 Solution |
 | 以 IP 為主 Key 的 CSV 比對 | 以 `Host` 分組，finding key = `Plugin ID + Port + Protocol`；標記**新增 / 已修復 / 持續 / 變更** |
-| 快速篩選與排序 | 關鍵字（主機/名稱/CVE/Plugin ID）、狀態、嚴重度、VPR≥、EPSS≥；點欄位標題排序 |
+| 快速篩選與排序 | **差異比對與風險明細矩陣的每個欄位標題下方都有下拉複選篩選**（狀態 / 嚴重度 / 主機 / Plugin / Port / CVE 為該欄值清單；VPR / EPSS 為區間分級）；欄內多選為 OR、跨欄為 AND；點欄位標題排序 |
 | 風險圖表（CVSS / EPSS / VPR） | **四象限**：縱軸固定 CVSS v2.0、橫軸可切 EPSS 或 VPR（右上=最優先），可切「一點=弱點 / 一點=主機」，資料點 hover 顯示 CVE；另有**漏洞總數與各嚴重度比較**（基準 vs 當前、含增減量）、嚴重度分佈對比、差異總覽、**Top 風險主機**（依弱點總數，依嚴重度堆疊長條）、**主機風險熱力圖**（可切 Σ VPR / Σ EPSS）。全分頁支援 **IP 多選篩選**（可搜尋、風險/IP 降序、圖表即時更新），每張圖標示**資料來源**。右上角有**全域「資料來源（基準/當前）」切換**，驅動四象限/熱力圖/Top 主機與風險明細（差異比對維持對比）；四象限資料點滑鼠移上顯示主機/CVE |
 | 漏洞總數統計 | KPI 卡：總數、各嚴重度、主機數、新增/修復、新增 CVE 數 + 增減量 |
 | 執行 Log | 分級（DEBUG/INFO/WARN/ERROR）、攔截未捕捉錯誤、可匯出 `.log` |
@@ -131,9 +160,12 @@ nessus-report/
 │  ├─ styles.css        深色、精簡樣式（無外部資源）
 │  ├─ core.js           純邏輯：解析 / 欄位對應 / diff / 統計 / 優先分數（瀏覽器與測試共用）
 │  └─ app.js            renderer：UI、虛擬表格、SVG 圖表、報表、Log、匯出
-├─ samples/             範例 CSV（基準 / 當前）
+├─ build/icon.png       App 圖示（electron-builder 打包用）
+├─ samples/             範例 CSV（基準 / 當前）+ 範例報表.html
+├─ docs/screenshots/    README 畫面預覽圖
 ├─ test/run-tests.js    核心邏輯測試（Node，零相依）
 ├─ test/e2e.js          真實瀏覽器 E2E（playwright-core + 預裝 Chromium）
+├─ .github/workflows/release.yml   CI/CD：推 v* tag 打包並發佈 Windows Release
 └─ package.json
 ```
 
