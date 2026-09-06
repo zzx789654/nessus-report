@@ -10,8 +10,12 @@
     "test:all": "node test/run-tests.js && node test/e2e.js",
     "dist": "electron-builder --win --publish never"
   },
-  "author": "",
+  "author": "Nessus Diff",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zzx789654/nessus-report.git"
+  },
   "build": {
     "appId": "com.nessusdiff.app",
     "productName": "Nessus Diff",
