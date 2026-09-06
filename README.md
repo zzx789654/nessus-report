@@ -147,6 +147,28 @@ npm run test:all   # 兩者一起跑
 
 ---
 
+## 打包與發佈（Windows 桌面 App）
+
+以 [electron-builder](https://www.electron.build/) 打包，設定在 `package.json` 的 `build` 區塊，App 圖示為 `build/icon.png`。
+
+**本機打包**（產出於 `dist/`，不會上傳）：
+
+```bash
+npm install
+npm run dist        # electron-builder --win（NSIS 安裝檔 + Portable 免安裝版）
+```
+
+**CI/CD 自動發佈**：`.github/workflows/release.yml` 會在**推送 `v` 開頭的 tag**（例如 `v1.8.0`）時，於 `windows-latest` runner 上跑核心測試 → 打包 → 以內建 `GITHUB_TOKEN` 發佈到對應的 GitHub Release。
+
+```bash
+git tag v1.8.0
+git push origin v1.8.0     # 觸發 Release 工作流程
+```
+
+> ⚠️ 目前**未做程式碼簽章 / 公證**：Windows 首次執行會跳 SmartScreen（點「其他資訊 → 仍要執行」），這對未簽章的內部工具屬正常現象。若要消除，需另備 EV/OV 憑證於 CI 簽章。
+
+---
+
 ## 授權
 
 MIT

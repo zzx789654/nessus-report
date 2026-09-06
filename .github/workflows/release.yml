@@ -1,0 +1,44 @@
+name: Release Windows Desktop App
+
+# 推送 v 開頭的 tag（例如 v1.8.0）時觸發：跑核心測試 → 以 electron-builder 打包 Windows
+# 安裝檔 / 免安裝版，並發佈到對應的 GitHub Release。
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: {}   # 也可於 Actions 頁面手動觸發（需自行建立 Release 才會有附件）
+
+permissions:
+  contents: write          # 建立 / 上傳 GitHub Release 需要
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run core tests
+        run: npm test
+
+      - name: Build & publish (electron-builder, Windows)
+        run: npx --no-install electron-builder --win --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload build artifacts (CI 保存，方便手動觸發時下載)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installers
+          path: |
+            dist/*.exe
+          if-no-files-found: ignore

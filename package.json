@@ -7,11 +7,54 @@
     "start": "electron .",
     "test": "node test/run-tests.js",
     "test:e2e": "node test/e2e.js",
-    "test:all": "node test/run-tests.js && node test/e2e.js"
+    "test:all": "node test/run-tests.js && node test/e2e.js",
+    "dist": "electron-builder --win --publish never"
   },
   "author": "",
   "license": "MIT",
+  "build": {
+    "appId": "com.nessusdiff.app",
+    "productName": "Nessus Diff",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "!**/*.map"
+    ],
+    "npmRebuild": false,
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.png",
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.${ext}"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "zzx789654",
+        "repo": "nessus-report",
+        "releaseType": "release"
+      }
+    ]
+  },
   "devDependencies": {
-    "electron": "^31.0.0"
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
   }
 }
