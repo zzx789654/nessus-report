@@ -33,12 +33,5 @@ jobs:
         run: npx --no-install electron-builder --win --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload build artifacts (CI 保存，方便手動觸發時下載)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-installers
-          path: |
-            dist/*.exe
-          if-no-files-found: ignore
+        # 安裝檔會直接發佈到 GitHub Release（見上一步），故不再另存 CI artifact
+        # （actions/upload-artifact 會受 Actions 儲存配額限制而使整個 run 變紅）
