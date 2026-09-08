@@ -152,7 +152,7 @@
   // ---------------------------------------------------------------------------
   // 7. SVG 圖表
   // ---------------------------------------------------------------------------
-  const RISK_COLORS = { Critical: '#ff4d6d', High: '#ff8c42', Medium: '#ffd23f', Low: '#4cc9f0', Info: '#7d8aa8' };
+  const RISK_COLORS = { Critical: '#ff5d8f', High: '#ff9e64', Medium: '#ffd166', Low: '#5bc8e0', Info: '#b7c0e6' };
 
   function chartSeverity(oldSev, newSev, mode) {
     const cats = ['Critical', 'High', 'Medium', 'Low', 'Info'];
@@ -197,7 +197,7 @@
 
   function chartDiff(st) {
     const items = st.mode === 'diff'
-      ? [['新增', st.added, '#ff4d6d'], ['已修復', st.removed, '#2dd4a7'], ['持續', st.persistent, '#8892a8'], ['變更', st.changed, '#ffd23f']]
+      ? [['新增', st.added, '#ff5d8f'], ['已修復', st.removed, '#5ce6b4'], ['持續', st.persistent, '#aab3dd'], ['變更', st.changed, '#ffd166']]
       : [['弱點', st.newTotal, '#4f8cff']];
     const W = 600, H = 300, pad = { l: 40, r: 16, t: 20, b: 40 };
     const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'xMidYMid meet', role: 'img' });
@@ -273,10 +273,10 @@
   }
 
   // Top 風險主機：依「弱點總數」排序，單一長條依嚴重度堆疊（Info/Low/Medium/High/Critical）
-  // 使用者指定色：Info=藍、Low=綠、Medium=黃、High=紅、Critical=橘
+  // 使用者指定色：Info=藍、Low=綠、Medium=黃、High=紅、Critical=橘（Aurora 調和色）
   const TOP_SEV = [
-    { k: 'Info', c: '#4f8cff' }, { k: 'Low', c: '#2dd4a7' }, { k: 'Medium', c: '#ffd23f' },
-    { k: 'High', c: '#ff4d6d' }, { k: 'Critical', c: '#ff8c42' }
+    { k: 'Info', c: '#5b9bff' }, { k: 'Low', c: '#5ce6b4' }, { k: 'Medium', c: '#ffd166' },
+    { k: 'High', c: '#ff5d8f' }, { k: 'Critical', c: '#ff9e64' }
   ];
   function chartTopHosts(priority) {
     const top = priority.slice().sort((a, b) => b.count - a.count).slice(0, 10);
@@ -483,7 +483,7 @@
     { key: 'epss', label: 'EPSS', w: '78px', type: 'epss' },
     { key: 'cve', label: 'CVE', w: '150px' }
   ];
-  const ROW_H = 34;
+  const ROW_H = 27;
   const STATUS_LABEL = { added: '🔴 新增', removed: '🟢 已修復', persistent: '⚪ 持續', changed: '🟡 變更', single: '本份' };
 
   function gridTemplate() { return COLS.map(c => c.w).join(' '); }
@@ -855,7 +855,7 @@
     { key: 'name', label: '弱點名稱', w: 'minmax(170px,1.3fr)' },
     { key: 'solution', label: '處理方式', w: 'minmax(200px,1.8fr)' }
   ];
-  const DROW_H = 34;
+  const DROW_H = 27;
   function dgridTemplate() { return DCOLS.map(c => c.w).join(' '); }
 
   // 將所選 CSV 展開為「每個 CVE 一列」（一個 plugin 多個 CVE → 多列）
