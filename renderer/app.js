@@ -858,26 +858,55 @@
   const DROW_H = 27;
   function dgridTemplate() { return DCOLS.map(c => c.w).join(' '); }
 
-  // 將所選 CSV 展開為「每個 CVE 一列」（一個 plugin 多個 CVE → 多列）
-  function buildDetailRows() {
-    const recs = S.viewSource === 'old' ? (S.old ? S.old.recs : []) : (S.new ? S.new.recs : []);
-    const out = [];
-    for (const r of recs) {
-      const base = {
-        host: r.host, risk: r.risk, riskLevel: r.riskLevel, cvss: r.cvss, vpr: r.vpr, epss: r.epss,
-        port: r.port, protocol: r.protocol || '', name: r.name, solution: r.solution || '', synopsis: r.synopsis || '',
-        description: r.description || '', pluginOutput: r.pluginOutput || '', seeAlso: r.seeAlso || '',
-        dnsName: r.dnsName || '', os: r.os || '', mac: r.mac || '',
-        disposition: r.disposition || '', exception: r.exception || '', owner: r.owner || '', note: r.note || ''
-      };
-      const cves = String(r.cve || '').split(/[,;\s]+/).filter(c => /^CVE-/i.test(c)).map(c => c.toUpperCase());
-      if (cves.length) {
-        for (const cve of cves) out.push(Object.assign({ cve, _hay: (cve + ' ' + r.host + ' ' + r.name).toLowerCase() }, base));
-      } else {
-        out.push(Object.assign({ cve: '—', _hay: (r.host + ' ' + r.name).toLowerCase() }, base));
-      }
-    }
-    S.detailRows = out;
+  // ── 風險明細列建構：① 延遲＋快取（只在首次開啟分頁或資料/來源變更時建構）
+  //                    ② 排序一次（換排序鍵才重排）  ③ 大量資料分塊建構＋進度 ──
+  let _detailBuildSeq = 0;         // 建構序號：新建構會使進行中的舊建構自動放棄
+  let _detailBuiltToken = null;    // 已建構的資料識別（dataVersion|viewSource）
+  let _detailSortCache = null;     // 已排序的鍵（key:dir）；避免每次篩選重排
+
+  function _detailRecs() { return S.viewSource === 'old' ? (S.old ? S.old.recs : []) : (S.new ? S.new.recs : []); }
+  function _detailToken() { return (S.dataVersion || 0) + '|' + S.viewSource; }
+
+  // 將單筆 rec 展開為「每個 CVE 一列」並推入 out（一個 plugin 多個 CVE → 多列）
+  function _expandRec(r, out) {
+    const base = {
+      host: r.host, risk: r.risk, riskLevel: r.riskLevel, cvss: r.cvss, vpr: r.vpr, epss: r.epss,
+      port: r.port, protocol: r.protocol || '', name: r.name, solution: r.solution || '', synopsis: r.synopsis || '',
+      description: r.description || '', pluginOutput: r.pluginOutput || '', seeAlso: r.seeAlso || '',
+      dnsName: r.dnsName || '', os: r.os || '', mac: r.mac || '',
+      disposition: r.disposition || '', exception: r.exception || '', owner: r.owner || '', note: r.note || ''
+    };
+    const cves = String(r.cve || '').split(/[,;\s]+/).filter(c => /^CVE-/i.test(c)).map(c => c.toUpperCase());
+    if (cves.length) { for (const cve of cves) out.push(Object.assign({ cve, _hay: (cve + ' ' + r.host + ' ' + r.name).toLowerCase() }, base)); }
+    else { out.push(Object.assign({ cve: '—', _hay: (r.host + ' ' + r.name).toLowerCase() }, base)); }
+  }
+
+  // 使快取失效（資料或來源變更時）；下次開啟分頁會重建
+  function invalidateDetail() { _detailBuiltToken = null; }
+
+  // 確保 detailRows 已依目前資料/來源建構；完成後呼叫 done。>3000 筆時分塊建構並於計數處顯示進度。
+  function ensureDetailRows(done) {
+    const token = _detailToken();
+    if (_detailBuiltToken === token && Array.isArray(S.detailRows)) { done(); return; }
+    const recs = _detailRecs(), N = recs.length, out = [], CHUNK = 2000, my = ++_detailBuildSeq;
+    const finish = () => { S.detailRows = out; _detailBuiltToken = token; _detailSortCache = null; done(); };
+    if (N <= 3000) { for (const r of recs) _expandRec(r, out); finish(); return; }
+    let i = 0; const count = $('#d-count');
+    const step = () => {
+      if (my !== _detailBuildSeq) return;                 // 被較新的建構取代 → 放棄
+      const end = Math.min(N, i + CHUNK);
+      for (; i < end; i++) _expandRec(recs[i], out);
+      if (i < N) { if (count) count.textContent = `整理明細中… ${Math.round(i / N * 100)}%`; requestAnimationFrame(step); }
+      else finish();
+    };
+    if (count) count.textContent = '整理明細中… 0%';
+    requestAnimationFrame(step);
+  }
+
+  // 開啟/刷新風險明細分頁：延遲建構完成後套用篩選
+  function openDetail() {
+    $('#detail-expand').hidden = true;
+    ensureDetailRows(() => applyDetailFilter());
   }
 
   // 風險明細矩陣的篩選設定（與差異比對共用同一套下拉複選機制）
@@ -895,17 +924,24 @@
   };
   function buildDetailHeader() { buildMatrixHeader(detailFilterCfg); }
 
-  function applyDetailFilter() {
-    const colF = activeColFilters(detailFilterCfg);
-    const out = [];
-    for (const r of S.detailRows) if (rowPassesColFilters(colF, r)) out.push(r);
+  // 只在排序鍵/方向改變時，對整份 detailRows 重排一次（O(N log N)）
+  function sortDetailBase() {
     const key = S.detailSort.key, dir = S.detailSort.dir;
-    out.sort((a, b) => {
+    S.detailRows.sort((a, b) => {
       let av = key === 'risk' ? a.riskLevel : a[key], bv = key === 'risk' ? b.riskLevel : b[key];
       if (av == null) av = -Infinity; if (bv == null) bv = -Infinity;
       if (typeof av === 'string' && typeof bv === 'string') return dir * av.localeCompare(bv);
       return dir * (av > bv ? 1 : av < bv ? -1 : 0);
     });
+    _detailSortCache = key + ':' + dir;
+  }
+  function applyDetailFilter() {
+    if (!Array.isArray(S.detailRows)) S.detailRows = [];
+    const sk = S.detailSort.key + ':' + S.detailSort.dir;
+    if (_detailSortCache !== sk) sortDetailBase();     // 排序一次；篩選沿用已排序順序，不再每次重排
+    const colF = activeColFilters(detailFilterCfg);
+    const out = [];
+    for (const r of S.detailRows) if (rowPassesColFilters(colF, r)) out.push(r);   // 已是排序後順序
     S.detailFiltered = out;
     $('#d-count').textContent = `${fmt(out.length)} 筆（共 ${fmt(S.detailRows.length)}）`;
     renderDetailVirtual();
@@ -984,8 +1020,10 @@
   function prepDetail() {
     $('#detail-expand').hidden = true;
     buildDetailHeader();
-    buildDetailRows();
-    applyDetailFilter();
+    invalidateDetail();                       // 標記需重建；實際展開延遲到「開啟該分頁」時才做
+    S.detailFiltered = [];
+    $('#d-count').textContent = '—';
+    if ($('#tab-detail').classList.contains('active')) openDetail();  // 若正停在該分頁則立即刷新
   }
 
   // 全域資料來源切換（基準/當前）→ 驅動風險圖表單一來源圖與風險明細；差異比對維持對比不受影響
@@ -995,7 +1033,7 @@
     S.viewSource = src;
     $$('#src-toggle .seg').forEach(b => b.classList.toggle('active', b.dataset.view === src));
     if (S.stats && $('#tab-charts').classList.contains('active')) renderCharts();
-    if (S.stats && $('#tab-detail').classList.contains('active')) { $('#detail-expand').hidden = true; buildDetailRows(); applyDetailFilter(); }
+    if (S.stats && $('#tab-detail').classList.contains('active')) openDetail(); // token 含 viewSource，會自動重建
   }
   function syncSourceToggle() {
     const oldBtn = $('#src-toggle .seg[data-view="old"]'), newBtn = $('#src-toggle .seg[data-view="new"]');
@@ -1224,7 +1262,7 @@
     $$('.tabpane').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
     if (name === 'charts') renderCharts();
     if (name === 'diff' && S.stats) paintDiffRows();       // 以正確視窗高度重繪（首次渲染時分頁可能隱藏、高度為 0）
-    if (name === 'detail' && S.stats) applyDetailFilter(); // 切到分頁時以正確視窗高度重繪
+    if (name === 'detail' && S.stats) openDetail();        // 切到分頁時才建構（延遲）並以正確視窗高度重繪
     if (name === 'log') Log.rerender();
   }
 
@@ -1351,7 +1389,8 @@
     S.viewSource = (S.new && S.new.recs.length) ? 'new' : 'old';
     syncSourceToggle();
 
-    // 風險明細分頁（準備資料 + 計數，實際 DOM 於切到該分頁時渲染）
+    // 風險明細分頁（延遲建構：只標記需重建 + 計數，實際展開於切到該分頁時才做）
+    S.dataVersion = (S.dataVersion || 0) + 1;   // 資料變更 → 明細快取失效
     prepDetail();
 
     // 風險圖表 IP 篩選（預設全選）；若正處於圖表分頁則即時重繪
