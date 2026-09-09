@@ -287,7 +287,9 @@ button { font-family: inherit; }
 .heat-more { font-size: 9.5px; color: var(--text-faint); margin-top: 8px; }
 
 /* IP 多選篩選器（風險圖表） */
-.chart-ipfilter { padding: 10px 13px; }
+/* 面板有 backdrop-filter 會各自形成 stacking context；把本面板提為 z-index 定位元素，
+   下拉選單(.ms-panel)才能浮在後方（四象限等）面板之上，不被蓋住 */
+.chart-ipfilter { padding: 10px 13px; position: relative; z-index: 30; }
 .ipf-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .ipf-bar > strong { font-size: 11.5px; }
 .ms { position: relative; }
