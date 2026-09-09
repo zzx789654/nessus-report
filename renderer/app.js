@@ -188,9 +188,9 @@
     });
     if (twoBars) {
       svg.appendChild(svgEl('rect', { x: pad.l, y: 8, width: 10, height: 10, fill: '#888', opacity: 0.45 }));
-      svg.appendChild(svgEl('text', { x: pad.l + 14, y: 17 }, '基準'));
+      svg.appendChild(svgEl('text', { x: pad.l + 14, y: 17 }, '舊版'));
       svg.appendChild(svgEl('rect', { x: pad.l + 60, y: 8, width: 10, height: 10, fill: '#888' }));
-      svg.appendChild(svgEl('text', { x: pad.l + 74, y: 17 }, '當前'));
+      svg.appendChild(svgEl('text', { x: pad.l + 74, y: 17 }, '新版'));
     }
     return svg;
   }
@@ -265,9 +265,9 @@
     // 圖例
     if (twoBars) {
       svg.appendChild(svgEl('rect', { x: pad.l, y: 8, width: 10, height: 10, fill: '#888', opacity: 0.42 }));
-      svg.appendChild(svgEl('text', { x: pad.l + 14, y: 17 }, '基準'));
+      svg.appendChild(svgEl('text', { x: pad.l + 14, y: 17 }, '舊版'));
       svg.appendChild(svgEl('rect', { x: pad.l + 60, y: 8, width: 10, height: 10, fill: '#888' }));
-      svg.appendChild(svgEl('text', { x: pad.l + 74, y: 17 }, '當前'));
+      svg.appendChild(svgEl('text', { x: pad.l + 74, y: 17 }, '新版'));
     }
     return svg;
   }
@@ -1010,8 +1010,8 @@
   // ---------------------------------------------------------------------------
   function deltaSpan(delta) {
     const s = document.createElement('div');
-    if (delta > 0) { s.className = 'd up'; s.textContent = '▲ +' + fmt(delta) + ' vs 基準'; }
-    else if (delta < 0) { s.className = 'd down'; s.textContent = '▼ ' + fmt(delta) + ' vs 基準'; }
+    if (delta > 0) { s.className = 'd up'; s.textContent = '▲ +' + fmt(delta) + ' vs 舊版'; }
+    else if (delta < 0) { s.className = 'd down'; s.textContent = '▼ ' + fmt(delta) + ' vs 舊版'; }
     else { s.className = 'd flat'; s.textContent = '＝ 無變化'; }
     return s;
   }
@@ -1026,7 +1026,7 @@
   function renderKPI(st) {
     const grid = $('#stat-grid'); grid.replaceChildren();
     const diff = st.mode === 'diff';
-    grid.appendChild(card('當前弱點總數', fmt(st.newTotal), diff ? deltaSpan(st.newTotal - st.oldTotal) : null));
+    grid.appendChild(card('新版弱點總數', fmt(st.newTotal), diff ? deltaSpan(st.newTotal - st.oldTotal) : null));
     grid.appendChild(card('受影響主機', fmt(st.newHosts), diff ? deltaSpan(st.newHosts - st.oldHosts) : null));
     if (diff) {
       grid.appendChild(card('🔴 本次新增', fmt(st.added), null));
@@ -1104,14 +1104,14 @@
     metaLine += '產生時間：' + escapeXml(now);
     body += `<p class="meta">${metaLine}</p>`;
     const oScan = S.scanTime && S.scanTime.old, nScan = S.scanTime && S.scanTime.new;
-    body += `<p class="meta">基準來源：${escapeXml(S.old ? S.old.name : '（無）')}${oScan ? '（掃描時間：' + escapeXml(oScan) + '）' : ''}` +
-      ` · 當前來源：${escapeXml(S.new ? S.new.name : '（無）')}${nScan ? '（掃描時間：' + escapeXml(nScan) + '）' : ''}</p>`;
+    body += `<p class="meta">舊版來源：${escapeXml(S.old ? S.old.name : '（無）')}${oScan ? '（掃描時間：' + escapeXml(oScan) + '）' : ''}` +
+      ` · 新版來源：${escapeXml(S.new ? S.new.name : '（無）')}${nScan ? '（掃描時間：' + escapeXml(nScan) + '）' : ''}</p>`;
     if (notes) body += `<p class="note">備註：${escapeXml(notes)}</p>`;
 
     if (opt.exec) {
       body += `<h2>執行摘要</h2><div class="kpis">`;
       const kpi = (k, v) => `<div class="kpi"><div class="k">${escapeXml(k)}</div><div class="v">${escapeXml(v)}</div></div>`;
-      body += kpi('當前弱點總數', fmt(st.newTotal));
+      body += kpi('新版弱點總數', fmt(st.newTotal));
       body += kpi('受影響主機', fmt(st.newHosts));
       if (st.mode === 'diff') { body += kpi('本次新增', fmt(st.added)); body += kpi('本次修復', fmt(st.removed)); }
       body += kpi('Critical', fmt(st.newSev.Critical));
@@ -1121,11 +1121,11 @@
       body += kpi('最高優先主機', top ? `${top.host}（${top.score.toFixed(2)}）` : '—');
       body += `</div>`;
       if (st.mode === 'diff') {
-        body += `<p class="note">相較基準，弱點總數${st.newTotal - st.oldTotal >= 0 ? '增加' : '減少'} ${Math.abs(st.newTotal - st.oldTotal)} 筆；` +
+        body += `<p class="note">相較舊版，弱點總數${st.newTotal - st.oldTotal >= 0 ? '增加' : '減少'} ${Math.abs(st.newTotal - st.oldTotal)} 筆；` +
           `新增 ${st.added} 筆、修復 ${st.removed} 筆、持續存在 ${st.persistent} 筆、屬性變更 ${st.changed} 筆。</p>`;
       }
     }
-    if (opt.severity) body += `<h2>漏洞總數與各嚴重度比較（基準 vs 當前）</h2><div class="chart">${serialize(chartTotalsCompare(st))}</div><div class="chart">${serialize(chartSeverity(st.oldSev, st.newSev, st.mode))}</div>`;
+    if (opt.severity) body += `<h2>漏洞總數與各嚴重度比較（舊版 vs 新版）</h2><div class="chart">${serialize(chartTotalsCompare(st))}</div><div class="chart">${serialize(chartSeverity(st.oldSev, st.newSev, st.mode))}</div>`;
     if (opt.diffchart && st.mode === 'diff') body += `<h2>差異總覽</h2><div class="chart">${serialize(chartDiff(st))}</div>`;
     if (opt.quadrant) {
       const xLabel = S.qx === 'vpr' ? 'VPR' : 'EPSS';
@@ -1207,7 +1207,7 @@
   function showProgress(on, slot, fname) {
     const b = $('#busy');
     if (!on) { b.hidden = true; return; }
-    $('#busy-text').textContent = `讀取${slot === 'old' ? '基準' : '當前'}掃描：${fname}`;
+    $('#busy-text').textContent = `讀取${slot === 'old' ? '舊版' : '新版'}掃描：${fname}`;
     $('#busy-bar').style.width = '0%'; $('#busy-progress').hidden = false;
     $('#busy-sub').textContent = '0%'; $('#busy-cancel').hidden = false;
     b.hidden = false;
@@ -1249,7 +1249,7 @@
   // 串流分塊讀取 + 解析：不阻塞 UI、顯示進度、可取消
   async function readAndParse(slot, file) {
     S.cancelImport = false;
-    Log.info(`開始匯入（${slot === 'old' ? '基準' : '當前'}）：${file.name}（${(file.size / 1024).toFixed(0)} KB）`);
+    Log.info(`開始匯入（${slot === 'old' ? '舊版' : '新版'}）：${file.name}（${(file.size / 1024).toFixed(0)} KB）`);
     showProgress(true, slot, file.name);
     const t0 = performance.now();
     const rawRows = [];
@@ -1301,7 +1301,7 @@
     S[slot] = { name: fname, recs, map, missingOpt, issueCount, dupes };
     S.scanTime[slot] = NCore.extractScanTime(recs);
 
-    Log.info(`正規化完成（${slot === 'old' ? '基準' : '當前'}）：${recs.length} 筆、${new Set(recs.map(r => r.host)).size} 台主機、耗時 ${(performance.now() - t0).toFixed(0)}ms`);
+    Log.info(`正規化完成（${slot === 'old' ? '舊版' : '新版'}）：${recs.length} 筆、${new Set(recs.map(r => r.host)).size} 台主機、耗時 ${(performance.now() - t0).toFixed(0)}ms`);
     if (skipped) Log.warn(`略過 ${skipped} 列（缺 Host 或 Plugin ID）`);
     if (dupes) Log.warn(`偵測到 ${dupes} 筆重複（相同 Host/Plugin/Port/Protocol）`);
     if (issueCount) { Log.warn(`數值異常 ${issueCount} 處，已標記為缺值（不夾值）`); issues.slice(0, 30).forEach(it => Log.warn(`  第 ${it.line} 列 ${it.field}="${it.raw}" → ${it.reason}`)); }
@@ -1311,7 +1311,7 @@
     dz.classList.add('loaded');
     $('[data-role=filename]', dz).textContent = `✓ ${fname}（${recs.length} 筆）`;
 
-    let msg = `已載入 ${slot === 'old' ? '基準' : '當前'}掃描：${recs.length} 筆。`;
+    let msg = `已載入 ${slot === 'old' ? '舊版' : '新版'}掃描：${recs.length} 筆。`;
     const notes = [];
     if (dupes) notes.push(`${dupes} 筆重複`);
     if (issueCount) notes.push(`${issueCount} 處數值異常已標記`);
@@ -1401,17 +1401,17 @@
     setText('#src-quadrant', '資料來源：' + single);
     setText('#src-heatmap', '資料來源：' + single);
     setText('#src-tophosts', '資料來源：' + single);
-    const both = (S.stats.mode === 'diff') ? '資料來源：基準 vs 當前（對比）' : '資料來源：' + single;
+    const both = (S.stats.mode === 'diff') ? '資料來源：舊版 vs 新版（對比）' : '資料來源：' + single;
     setText('#src-totals', both);
     setText('#src-severity', both);
   }
   function setText(sel, txt) { const el = $(sel); if (el) el.textContent = txt; }
   // 單一資料集圖表的來源（依全域 viewSource）
   function chartSourceLabel() {
-    if (S.viewSource === 'old' && S.old && S.old.recs.length) return `基準掃描（${S.old.name}）`;
-    if (S.viewSource === 'new' && S.new && S.new.recs.length) return `當前掃描（${S.new.name}）`;
-    if (S.new && S.new.recs.length) return `當前掃描（${S.new.name}）`;
-    if (S.old && S.old.recs.length) return `基準掃描（${S.old.name}）`;
+    if (S.viewSource === 'old' && S.old && S.old.recs.length) return `舊版掃描（${S.old.name}）`;
+    if (S.viewSource === 'new' && S.new && S.new.recs.length) return `新版掃描（${S.new.name}）`;
+    if (S.new && S.new.recs.length) return `新版掃描（${S.new.name}）`;
+    if (S.old && S.old.recs.length) return `舊版掃描（${S.old.name}）`;
     return '—';
   }
 

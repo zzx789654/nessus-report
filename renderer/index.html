@@ -37,16 +37,16 @@
     <!-- 匯入區 -->
     <section id="import-section" class="import-section">
       <div class="dropzones">
-        <div class="dropzone" id="dz-old" data-slot="old" tabindex="0" role="button" aria-label="匯入基準（舊）掃描 CSV">
+        <div class="dropzone" id="dz-old" data-slot="old" tabindex="0" role="button" aria-label="匯入舊版掃描 CSV">
           <div class="dz-icon" aria-hidden="true">📥</div>
-          <div class="dz-title">基準掃描（舊）</div>
+          <div class="dz-title">舊版掃描</div>
           <div class="dz-sub">拖放或點擊選擇 Nessus CSV</div>
           <div class="dz-file" data-role="filename"></div>
         </div>
         <div class="dz-arrow" aria-hidden="true">→</div>
-        <div class="dropzone" id="dz-new" data-slot="new" tabindex="0" role="button" aria-label="匯入當前（新）掃描 CSV">
+        <div class="dropzone" id="dz-new" data-slot="new" tabindex="0" role="button" aria-label="匯入新版掃描 CSV">
           <div class="dz-icon" aria-hidden="true">📥</div>
-          <div class="dz-title">當前掃描（新）</div>
+          <div class="dz-title">新版掃描</div>
           <div class="dz-sub">拖放或點擊選擇 Nessus CSV</div>
           <div class="dz-file" data-role="filename"></div>
         </div>
@@ -71,14 +71,14 @@
         <div id="overview-empty" class="empty-state">
           <div class="empty-icon" aria-hidden="true">📊</div>
           <h2>尚未載入資料</h2>
-          <p>請於上方匯入「基準掃描」與「當前掃描」兩份 Nessus CSV，即可開始比對。</p>
+          <p>請於上方匯入「舊版掃描」與「新版掃描」兩份 Nessus CSV，即可開始比對。</p>
           <p class="empty-sub">只匯入一份也能檢視該份的統計與圖表。</p>
         </div>
         <div id="overview-body" hidden>
           <div class="stat-grid" id="stat-grid"><!-- KPI 卡由 JS 產生 --></div>
           <div class="overview-cols">
             <div class="panel">
-              <h3>嚴重度分佈（基準 vs 當前）</h3>
+              <h3>嚴重度分佈（舊版 vs 新版）</h3>
               <div id="chart-severity" class="chart-holder"></div>
             </div>
             <div class="panel">
@@ -166,8 +166,8 @@
           <div id="chart-quadrant" class="chart-holder tall"></div>
         </div>
         <div class="panel">
-          <h3>漏洞總數與各嚴重度比較（基準 vs 當前） <span class="src-badge" id="src-totals"></span></h3>
-          <p class="panel-hint">比較兩份掃描的漏洞總數與各嚴重度數量。每組左＝基準（半透明）、右＝當前（實色），下方為增減量（▲增加／▼減少）。</p>
+          <h3>漏洞總數與各嚴重度比較（舊版 vs 新版） <span class="src-badge" id="src-totals"></span></h3>
+          <p class="panel-hint">比較兩份掃描的漏洞總數與各嚴重度數量。每組左＝舊版（半透明）、右＝新版（實色），下方為增減量（▲增加／▼減少）。</p>
           <div id="chart-totals" class="chart-holder"></div>
         </div>
         <div class="panel">
@@ -183,7 +183,7 @@
         </div>
         <div class="overview-cols">
           <div class="panel">
-            <h3>嚴重度分佈（基準 vs 當前） <span class="src-badge" id="src-severity"></span></h3>
+            <h3>嚴重度分佈（舊版 vs 新版） <span class="src-badge" id="src-severity"></span></h3>
             <div id="chart-severity2" class="chart-holder"></div>
           </div>
           <div class="panel">
@@ -204,7 +204,7 @@
             </div>
             <span id="d-count" class="result-count">—</span>
           </div>
-          <p class="panel-hint">每個 <b>CVE</b> 一列（一個 plugin 涵蓋多個 CVE 會展開成多列）。資料來源依右上角<b>全域「資料來源」（基準 / 當前）</b>；<b>各欄標題下方可下拉複選篩選</b>、點欄位標題排序；<b>點列可展開完整說明與處理方式</b>。「處理方式」取自 Nessus 的 Solution 欄位。</p>
+          <p class="panel-hint">每個 <b>CVE</b> 一列（一個 plugin 涵蓋多個 CVE 會展開成多列）。資料來源依右上角<b>全域「資料來源」（舊版 / 新版）</b>；<b>各欄標題下方可下拉複選篩選</b>、點欄位標題排序；<b>點列可展開完整說明與處理方式</b>。「處理方式」取自 Nessus 的 Solution 欄位。</p>
           <div class="vtable" id="dtable" role="table" aria-label="風險明細">
             <div class="vthead" id="dthead" role="row"></div>
             <div class="vviewport" id="dviewport" role="rowgroup">
