@@ -404,8 +404,9 @@
     const hitPts = [];  // { cx, cy, tip }
     for (const p of pts) {
       const cx = X(p.x), cy = Y(p.y), color = RISK_COLORS[p.risk] || '#888';
+      // 形狀：僅在「只看本次新增」（addedOnly）時畫菱形；預設（跟隨全域舊/新版）一律圓點。
       let node;
-      if (p.added) { const s = 4; node = svgEl('path', { d: `M${cx} ${cy - s}L${cx + s} ${cy}L${cx} ${cy + s}L${cx - s} ${cy}Z`, fill: color, opacity: 0.9 }); }
+      if (addedOnly) { const s = 4; node = svgEl('path', { d: `M${cx} ${cy - s}L${cx + s} ${cy}L${cx} ${cy + s}L${cx - s} ${cy}Z`, fill: color, opacity: 0.9 }); }
       else { node = svgEl('circle', { cx, cy, r: 3.2, fill: color, opacity: 0.72 }); }
       const tipText = (mode === 'host')
         ? `主機 ${p.host}\n${p.name}\n${yAx.label} ${p.y} · ${xAx.label} ${p.x}`
@@ -1430,15 +1431,15 @@
   function renderCharts() {
     if (!S.stats) return;
     hideTip();
-    // 「本次新增」是差異概念（新版才有、舊版沒有）：僅在 diff 模式且檢視新版時，
-    // 才顯示「只看本次新增」勾選與菱形圖例；舊版或單一來源時隱藏並取消勾選，避免誤導與空圖。
-    {
-      const showAdded = (S.stats.mode === 'diff') && S.viewSource === 'new';
-      const wrap = $('#q-added-wrap'), leg = $('#q-shape-legend'), cb = $('#q-added-only');
-      if (wrap) wrap.style.display = showAdded ? '' : 'none';
-      if (leg) leg.style.display = showAdded ? '' : 'none';
-      if (!showAdded && cb && cb.checked) cb.checked = false;
-    }
+    // 「本次新增」是差異概念：僅在 diff 模式提供「只看本次新增」勾選（單一來源無此概念）。
+    const isDiff = S.stats.mode === 'diff';
+    const cbAdded = $('#q-added-only');
+    if ($('#q-added-wrap')) $('#q-added-wrap').style.display = isDiff ? '' : 'none';
+    if (!isDiff && cbAdded && cbAdded.checked) cbAdded.checked = false;
+    const wantAdded = !!(isDiff && cbAdded && cbAdded.checked);   // 勾「只看本次新增」
+    // 形狀（菱形）圖例僅在「只看本次新增」時有意義（此時全為菱形＝新增）；預設隱藏。
+    if ($('#q-shape-legend')) $('#q-shape-legend').style.display = wantAdded ? '' : 'none';
+
     // 依 IP 篩選即時計算本分頁圖表的資料集（未選任何主機 → 顯示提示，不畫）
     const sel = S.chartHosts;
     const allHosts = S.hostPriority.length;
@@ -1450,8 +1451,9 @@
     const stats = NCore.computeStats(oldRecs, newRecs, rows);
     // 單一來源圖（四象限/熱力圖/Top 主機）依全域資料來源；比較圖（總數/嚴重度）仍用兩份對比
     const srcNew = S.viewSource === 'new';
-    const recs = srcNew ? newRecs : oldRecs;
     const priority = NCore.computeHostPriority(srcNew ? [] : oldRecs, srcNew ? newRecs : [], rows);
+    // 四象限資料來源：預設跟隨全域舊/新版（全為圓點）；勾「只看本次新增」時改用新版的新增項（菱形，差異概念僅新版有）
+    const quadRecs = wantAdded ? newRecs : (srcNew ? newRecs : oldRecs);
 
     const empty = (sel.size === 0 && allHosts > 0);
     if (empty) {
@@ -1461,9 +1463,9 @@
       return;
     }
     $('#chart-quadrant').replaceChildren(chartQuadrant({
-      xKey: S.qx, mode: S.qmode, addedOnly: $('#q-added-only').checked,
+      xKey: S.qx, mode: S.qmode, addedOnly: wantAdded,
       xThresh: num($('#q-xthresh').value), yThresh: num($('#q-ythresh').value),
-      recs, rows
+      recs: quadRecs, rows
     }));
     $('#chart-totals').replaceChildren(chartTotalsCompare(stats));
     $('#chart-heatmap').replaceChildren(chartHeatmap(priority, S.heatMetric));
@@ -1471,7 +1473,7 @@
     $('#chart-tophosts').replaceChildren(chartTopHosts(priority));
     // 標示各圖資料來源
     const single = chartSourceLabel();
-    setText('#src-quadrant', '資料來源：' + single);
+    setText('#src-quadrant', wantAdded ? '資料來源：本次新增（新版新出現）' : '資料來源：' + single);
     setText('#src-heatmap', '資料來源：' + single);
     setText('#src-tophosts', '資料來源：' + single);
     const both = (S.stats.mode === 'diff') ? '資料來源：舊版 vs 新版（對比）' : '資料來源：' + single;
