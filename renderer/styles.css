@@ -213,6 +213,12 @@ button { font-family: inherit; }
 .st-persistent { color: var(--persist); }
 .st-changed { color: var(--changed); }
 .st-dot::before { content: "●"; margin-right: 5px; }
+/* 可利用（exploit 框架）徽章 */
+.exp-cell { display: flex; gap: 3px; align-items: center; flex-wrap: nowrap; overflow: hidden; }
+.exp-badge { display: inline-block; padding: 1px 5px; border-radius: 5px; font-size: 9px; font-weight: 700; letter-spacing: .2px; border: 1px solid transparent; }
+.exp-metasploit { background: rgba(255,93,143,.18); color: var(--crit); border-color: rgba(255,93,143,.4); }
+.exp-coreImpact { background: rgba(255,158,100,.18); color: var(--high); border-color: rgba(255,158,100,.4); }
+.exp-canvas { background: rgba(255,209,102,.18); color: var(--med); border-color: rgba(255,209,102,.4); }
 
 /* 迷你表 */
 .mini-table { width: 100%; overflow-x: auto; }

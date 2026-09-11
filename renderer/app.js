@@ -507,6 +507,7 @@
     { key: 'port', label: 'Port', w: '64px' },
     { key: 'vpr', label: 'VPR', w: '68px', type: 'num' },
     { key: 'epss', label: 'EPSS', w: '78px', type: 'epss' },
+    { key: 'exploited', label: '可利用', w: '124px', type: 'exploit' },
     { key: 'cve', label: 'CVE', w: '150px' }
   ];
   const ROW_H = 27;
@@ -539,7 +540,14 @@
   }
 
   // 取一列在某欄的「選項鍵」集合（CVE 一列可能多個 → 多鍵；數值 → 對應區間；空值 → 特殊鍵）
+  // 可利用欄的框架清單（顯示徽章 / 排序 / 篩選共用）
+  const EXPLOIT_FW = [['metasploit', 'MSF', 'Metasploit'], ['coreImpact', 'Core', 'Core Impact'], ['canvas', 'CANVAS', 'CANVAS']];
   function colKeysOf(c, r) {
+    if (c.type === 'exploit') {
+      const ks = [];
+      for (const f of EXPLOIT_FW) if (r[f[0]]) ks.push(f[0]);
+      return ks.length ? ks : ['__noexp__'];
+    }
     const bk = bucketsFor(c);
     if (bk) { const v = r[c.key]; if (v == null) return ['__none__']; for (const b of bk) if (b.test(v)) return [b.id]; return ['__none__']; }
     if (c.key === 'cve') {
@@ -553,6 +561,8 @@
   function colKeyLabel(c, key) {
     if (key === '__none__') return c.key === 'cve' ? '（無 CVE）' : '（無數值）';
     if (key === '__blank__') return '（空白）';
+    if (key === '__noexp__') return '（未武器化）';
+    if (c.type === 'exploit') { const f = EXPLOIT_FW.find(x => x[0] === key); return f ? f[2] : key; }
     if (c.key === 'status') return STATUS_LABEL[key] || key;
     const bk = bucketsFor(c); if (bk) { const b = bk.find(x => x.id === key); return b ? b.label : key; }
     return key;
@@ -564,6 +574,7 @@
     for (const r of rows) for (const k of colKeysOf(c, r)) present.add(k);
     let ordered;
     if (c.key === 'status') ordered = ['added', 'removed', 'persistent', 'changed', 'single'];
+    else if (c.type === 'exploit') ordered = EXPLOIT_FW.map(f => f[0]);
     else if (c.key === 'risk') ordered = ['Critical', 'High', 'Medium', 'Low', 'Info'];
     else if (bucketsFor(c)) ordered = bucketsFor(c).map(b => b.id);
     else {
@@ -575,8 +586,19 @@
     const res = ordered.filter(k => present.has(k));
     if (present.has('__blank__')) res.push('__blank__');
     if (present.has('__none__')) res.push('__none__');
+    if (present.has('__noexp__')) res.push('__noexp__');
     return res;
   }
+  // 可利用欄：填入框架徽章（無則 —）。明細與差異矩陣共用。
+  function fillExploitCell(td, r) {
+    const fw = EXPLOIT_FW.filter(f => r[f[0]]);
+    if (!fw.length) { td.textContent = '—'; return; }
+    td.classList.add('exp-cell');
+    for (const f of fw) { const b = document.createElement('span'); b.className = 'exp-badge exp-' + f[0]; b.textContent = f[1]; td.appendChild(b); }
+    td.title = '可被利用：' + fw.map(f => f[2]).join('、');
+  }
+  // 報表用純文字標籤（如「MSF·Core」；無則 —）
+  function exploitLabel(r) { const fw = EXPLOIT_FW.filter(f => r[f[0]]); return fw.length ? fw.map(f => f[1]).join('·') : '—'; }
 
   let _colMenu = null;
   function closeColMenu() { if (_colMenu) { _colMenu.remove(); _colMenu = null; document.removeEventListener('pointerdown', onColMenuOutside, true); } }
@@ -736,7 +758,7 @@
     sortActive: (c) => S.sortKey === c.key, sortArrow: () => S.sortDir > 0 ? '▲' : '▼',
     onSort: (c) => {
       if (S.sortKey === c.key) S.sortDir = -S.sortDir;
-      else { S.sortKey = c.key; S.sortDir = (c.type === 'num' || c.type === 'epss') ? -1 : 1; }
+      else { S.sortKey = c.key; S.sortDir = (c.type === 'num' || c.type === 'epss' || c.type === 'exploit') ? -1 : 1; }
       applyFilterSort(); buildHeader();
     }
   };
@@ -815,6 +837,8 @@
         td.appendChild(p);
       } else if (c.type === 'epss') {
         td.textContent = r.epss == null ? '—' : (r.epss * 100).toFixed(1) + '%';
+      } else if (c.type === 'exploit') {
+        fillExploitCell(td, r);
       } else if (c.type === 'num') {
         td.textContent = r[c.key] == null ? '—' : r[c.key];
       } else {
@@ -891,6 +915,7 @@
     { key: 'cvss', label: 'CVSS', w: '66px', type: 'num' },
     { key: 'vpr', label: 'VPR', w: '62px', type: 'num' },
     { key: 'epss', label: 'EPSS', w: '76px', type: 'epss' },
+    { key: 'exploited', label: '可利用', w: '118px', type: 'exploit' },
     { key: 'port', label: 'Port', w: '58px' },
     { key: 'name', label: '弱點名稱', w: 'minmax(170px,1.3fr)' },
     { key: 'solution', label: '處理方式', w: 'minmax(200px,1.8fr)' }
@@ -911,6 +936,7 @@
   function _expandRec(r, out) {
     const base = {
       host: r.host, risk: r.risk, riskLevel: r.riskLevel, cvss: r.cvss, vpr: r.vpr, epss: r.epss,
+      metasploit: !!r.metasploit, coreImpact: !!r.coreImpact, canvas: !!r.canvas, exploited: !!r.exploited,
       port: r.port, protocol: r.protocol || '', name: r.name, solution: r.solution || '', synopsis: r.synopsis || '',
       description: r.description || '', pluginOutput: r.pluginOutput || '', seeAlso: r.seeAlso || '',
       dnsName: r.dnsName || '', os: r.os || '', mac: r.mac || '',
@@ -958,7 +984,7 @@
     sortActive: (c) => S.detailSort.key === c.key, sortArrow: () => S.detailSort.dir > 0 ? '▲' : '▼',
     onSort: (c) => {
       if (S.detailSort.key === c.key) S.detailSort.dir = -S.detailSort.dir;
-      else { S.detailSort.key = c.key; S.detailSort.dir = (c.type === 'num' || c.type === 'epss') ? -1 : 1; }
+      else { S.detailSort.key = c.key; S.detailSort.dir = (c.type === 'num' || c.type === 'epss' || c.type === 'exploit') ? -1 : 1; }
       applyDetailFilter(); buildDetailHeader();
     }
   };
@@ -1016,6 +1042,7 @@
       td.className = 'td' + (c.type === 'num' || c.type === 'epss' ? ' num' : '');
       if (c.type === 'risk') { const p = document.createElement('span'); p.className = 'pill risk-' + r.risk; p.textContent = r.risk; td.appendChild(p); }
       else if (c.type === 'epss') td.textContent = r.epss == null ? '—' : (r.epss * 100).toFixed(1) + '%';
+      else if (c.type === 'exploit') fillExploitCell(td, r);
       else if (c.type === 'num') td.textContent = r[c.key] == null ? '—' : r[c.key];
       else { const v = r[c.key]; td.textContent = (v === '' || v == null) ? '—' : v; if (c.key === 'name' || c.key === 'solution' || c.key === 'cve') td.title = v || ''; }
       row.appendChild(td);
@@ -1112,6 +1139,7 @@
     }
     grid.appendChild(card('Critical', fmt(st.newSev.Critical), diff ? deltaSpan(st.newSev.Critical - st.oldSev.Critical) : null));
     grid.appendChild(card('High', fmt(st.newSev.High), diff ? deltaSpan(st.newSev.High - st.oldSev.High) : null));
+    grid.appendChild(card('⚔ 可被利用漏洞數', fmt(st.exploitable || 0), diff ? deltaSpan((st.exploitable || 0) - (st.oldExploitable || 0)) : null));
     if (diff) grid.appendChild(card('本次新增 CVE 數', fmt(st.newCVEs), null));
   }
 
@@ -1194,6 +1222,7 @@
       if (st.mode === 'diff') { body += kpi('本次新增', fmt(st.added)); body += kpi('本次修復', fmt(st.removed)); }
       body += kpi('Critical', fmt(st.newSev.Critical));
       body += kpi('High', fmt(st.newSev.High));
+      body += kpi('可被利用漏洞數', fmt(st.exploitable || 0));
       if (st.mode === 'diff') body += kpi('新增 CVE 數', fmt(st.newCVEs));
       const top = S.hostPriority[0];
       body += kpi('最高優先主機', top ? `${top.host}（${top.score.toFixed(2)}）` : '—');
@@ -1252,9 +1281,9 @@
   }
   function findingsTableHTML(rows, track) {
     const diff = S.stats.mode === 'diff';
-    let h = `<table><thead><tr>${diff ? '<th>狀態</th>' : ''}<th>主機 / IP</th><th>Plugin</th><th>弱點名稱</th><th>嚴重度</th><th>Port</th><th class="num">VPR</th><th class="num">EPSS</th><th>CVE</th>${track ? '<th>處理狀態</th><th>負責人</th>' : ''}</tr></thead><tbody>`;
+    let h = `<table><thead><tr>${diff ? '<th>狀態</th>' : ''}<th>主機 / IP</th><th>Plugin</th><th>弱點名稱</th><th>嚴重度</th><th>Port</th><th class="num">VPR</th><th class="num">EPSS</th><th>可利用</th><th>CVE</th>${track ? '<th>處理狀態</th><th>負責人</th>' : ''}</tr></thead><tbody>`;
     for (const r of rows) {
-      h += `<tr>${diff ? '<td class="s-' + r.status + '">' + escapeXml(STATUS_LABEL[r.status] || r.status) + '</td>' : ''}<td>${escapeXml(r.host)}</td><td>${escapeXml(r.pluginId)}</td><td>${escapeXml(r.name)}</td><td class="r-${r.risk}">${escapeXml(r.risk)}</td><td>${escapeXml(r.port)}</td><td class="num">${r.vpr == null ? '—' : r.vpr}</td><td class="num">${r.epss == null ? '—' : (r.epss * 100).toFixed(1) + '%'}</td><td>${escapeXml(r.cve)}</td>${track ? '<td>' + escapeXml(r.disposition || '—') + '</td><td>' + escapeXml(r.owner || '—') + '</td>' : ''}</tr>`;
+      h += `<tr>${diff ? '<td class="s-' + r.status + '">' + escapeXml(STATUS_LABEL[r.status] || r.status) + '</td>' : ''}<td>${escapeXml(r.host)}</td><td>${escapeXml(r.pluginId)}</td><td>${escapeXml(r.name)}</td><td class="r-${r.risk}">${escapeXml(r.risk)}</td><td>${escapeXml(r.port)}</td><td class="num">${r.vpr == null ? '—' : r.vpr}</td><td class="num">${r.epss == null ? '—' : (r.epss * 100).toFixed(1) + '%'}</td><td>${escapeXml(exploitLabel(r))}</td><td>${escapeXml(r.cve)}</td>${track ? '<td>' + escapeXml(r.disposition || '—') + '</td><td>' + escapeXml(r.owner || '—') + '</td>' : ''}</tr>`;
     }
     return h + '</tbody></table>';
   }

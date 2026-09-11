@@ -1,301 +1,301 @@
-Plugin ID,CVE,CVSS v2.0 Base Score,CVSS v3.0 Base Score,Risk,Host,Protocol,Port,Name,Synopsis,Solution,VPR Score,EPSS Score
-19506,,,,None,10.0.1.11,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-35291,CVE-2011-3389,4.3,,Medium,10.0.1.11,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090
-71049,,,,Low,10.0.1.11,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006
-51192,,,,Medium,10.0.1.11,tcp,443,SSL Certificate Cannot Be Trusted,Certificate chain could not be verified.,Install a certificate from a trusted CA.,4.2,0.030
-151054,CVE-2021-34527,8.3,8.8,High,10.0.1.11,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800
-96982,,,,Medium,10.0.1.11,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050
-19506,,,,None,10.0.1.12,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-35291,CVE-2011-3389,4.3,,Medium,10.0.1.12,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090
-104743,CVE-2017-0144,9.3,8.1,Critical,10.0.1.12,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940
-73412,CVE-2014-0160,5.0,,High,10.0.1.12,tcp,443,OpenSSL Heartbeat Information Disclosure (Heartbleed),Memory disclosure via TLS heartbeat.,Upgrade OpenSSL to 1.0.1g or later and rotate keys.,8.5,0.970
-134862,CVE-2020-0796,9.4,10.0,Critical,10.0.1.12,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850
-153953,CVE-2021-44228,9.3,10.0,Critical,10.0.1.12,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),Remote code execution via JNDI lookup.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975
-25220,CVE-2004-2761,2.6,,Low,10.0.1.12,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006
-94437,CVE-2016-2183,7.1,7.5,High,10.0.1.12,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310
-97833,CVE-2019-0708,10.0,9.8,Critical,10.0.1.12,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960
-19506,,,,None,10.0.1.13,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-141843,CVE-2020-1472,9.4,10.0,Critical,10.0.1.13,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880
-134862,CVE-2020-0796,9.4,10.0,Critical,10.0.1.13,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850
-151054,CVE-2021-34527,8.3,8.8,High,10.0.1.13,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800
-35291,CVE-2011-3389,4.3,,Medium,10.0.1.13,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090
-96982,,,,Medium,10.0.1.13,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050
-19506,,,,None,10.0.1.14,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-71049,,,,Low,10.0.1.14,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006
-73412,CVE-2014-0160,5.0,,High,10.0.1.14,tcp,443,OpenSSL Heartbeat Information Disclosure (Heartbleed),Memory disclosure via TLS heartbeat.,Upgrade OpenSSL to 1.0.1g or later and rotate keys.,8.5,0.970
-25220,CVE-2004-2761,2.6,,Low,10.0.1.14,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006
-97833,CVE-2019-0708,10.0,9.8,Critical,10.0.1.14,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960
-141843,CVE-2020-1472,9.4,10.0,Critical,10.0.1.14,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880
-157288,,,,Medium,10.0.1.14,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040
-35291,CVE-2011-3389,4.3,,Medium,10.0.1.14,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090
-19506,,,,None,10.0.1.15,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-151054,CVE-2021-34527,8.3,8.8,High,10.0.1.15,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800
-104743,CVE-2017-0144,9.3,8.1,Critical,10.0.1.15,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940
-77823,CVE-2014-6271,,,Critical,10.0.1.15,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970
-42873,CVE-2013-2566,4.3,,Medium,10.0.1.15,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012
-148757,CVE-2021-26855,9.2,9.8,Critical,10.0.1.15,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930
-19506,,,,None,10.0.1.16,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-42873,CVE-2013-2566,4.3,,Medium,10.0.1.16,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012
-78479,CVE-2014-3566,4.3,7.5,High,10.0.1.16,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,7.2
-151054,CVE-2021-34527,8.3,8.8,High,10.0.1.16,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800
-134862,CVE-2020-0796,9.4,10.0,Critical,10.0.1.16,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850
-19506,,,,None,10.0.1.17,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-157288,,,,Medium,10.0.1.17,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040
-151054,CVE-2021-34527,8.3,8.8,High,10.0.1.17,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800
-104743,CVE-2017-0144,9.3,8.1,Critical,10.0.1.17,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940
-96982,,,,Medium,10.0.1.17,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050
-73412,CVE-2014-0160,5.0,,High,10.0.1.17,tcp,443,OpenSSL Heartbeat Information Disclosure (Heartbleed),Memory disclosure via TLS heartbeat.,Upgrade OpenSSL to 1.0.1g or later and rotate keys.,8.5,0.970
-71049,,,,Low,10.0.1.17,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006
-19506,,,,None,10.0.1.18,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-148757,CVE-2021-26855,9.2,9.8,Critical,10.0.1.18,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930
-97833,CVE-2019-0708,10.0,9.8,Critical,10.0.1.18,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960
-151054,CVE-2021-34527,8.3,8.8,High,10.0.1.18,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800
-73412,CVE-2014-0160,5.0,,High,10.0.1.18,tcp,443,OpenSSL Heartbeat Information Disclosure (Heartbleed),Memory disclosure via TLS heartbeat.,Upgrade OpenSSL to 1.0.1g or later and rotate keys.,8.5,0.970
-25220,CVE-2004-2761,2.6,,Low,10.0.1.18,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006
-96982,,,,Medium,10.0.1.18,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050
-97833,CVE-2019-0708,10.0,9.8,Critical,10.0.1.19,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960
-141843,CVE-2020-1472,9.4,10.0,Critical,10.0.1.19,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880
-156032,CVE-2022-22965,9.2,9.8,Critical,10.0.1.19,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900
-71049,,,,Low,10.0.1.19,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006
-19506,,,,None,10.0.1.20,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-25220,CVE-2004-2761,2.6,,Low,10.0.1.20,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006
-71049,,,,Low,10.0.1.20,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006
-94437,CVE-2016-2183,7.1,7.5,High,10.0.1.20,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310
-42873,CVE-2013-2566,4.3,7.5,High,10.0.1.20,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,7.2
-153953,CVE-2021-44228,9.3,10.0,Critical,10.0.1.20,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),Remote code execution via JNDI lookup.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975
-141843,CVE-2020-1472,9.4,10.0,Critical,10.0.1.20,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880
-19506,,,,None,10.0.2.11,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-148757,CVE-2021-26855,9.2,9.8,Critical,10.0.2.11,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930
-97833,CVE-2019-0708,10.0,9.8,Critical,10.0.2.11,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960
-94437,CVE-2016-2183,7.1,7.5,High,10.0.2.11,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310
-141843,CVE-2020-1472,9.4,10.0,Critical,10.0.2.11,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880
-42873,CVE-2013-2566,4.3,,Medium,10.0.2.11,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012
-19506,,,,None,10.0.2.12,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-71049,,,,Low,10.0.2.12,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006
-77823,CVE-2014-6271,,,Critical,10.0.2.12,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970
-42873,CVE-2013-2566,4.3,,Medium,10.0.2.12,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012
-151054,CVE-2021-34527,8.3,8.8,High,10.0.2.12,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800
-35291,CVE-2011-3389,4.3,,Medium,10.0.2.12,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090
-157288,,,,Medium,10.0.2.12,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040
-25220,CVE-2004-2761,2.6,,Low,10.0.2.12,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006
-19506,,,,None,10.0.2.13,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-141843,CVE-2020-1472,9.4,10.0,Critical,10.0.2.13,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880
-78479,CVE-2014-3566,4.3,,Medium,10.0.2.13,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,0.100
-156032,CVE-2022-22965,9.2,9.8,Critical,10.0.2.13,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900
-51192,,,,Medium,10.0.2.13,tcp,443,SSL Certificate Cannot Be Trusted,Certificate chain could not be verified.,Install a certificate from a trusted CA.,4.2,0.030
-25220,CVE-2004-2761,2.6,,Low,10.0.2.13,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006
-148757,CVE-2021-26855,9.2,9.8,Critical,10.0.2.13,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930
-94437,CVE-2016-2183,7.1,7.5,High,10.0.2.13,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310
-19506,,,,None,10.0.2.14,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-71049,,,,Low,10.0.2.14,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006
-73412,CVE-2014-0160,5.0,,High,10.0.2.14,tcp,443,OpenSSL Heartbeat Information Disclosure (Heartbleed),Memory disclosure via TLS heartbeat.,Upgrade OpenSSL to 1.0.1g or later and rotate keys.,8.5,0.970
-141843,CVE-2020-1472,9.4,10.0,Critical,10.0.2.14,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880
-97833,CVE-2019-0708,10.0,9.8,Critical,10.0.2.14,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960
-94437,CVE-2016-2183,7.1,7.5,High,10.0.2.14,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310
-19506,,,,None,10.0.2.15,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-35291,CVE-2011-3389,4.3,,Medium,10.0.2.15,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090
-104743,CVE-2017-0144,9.3,8.1,Critical,10.0.2.15,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940
-141843,CVE-2020-1472,9.4,10.0,Critical,10.0.2.15,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880
-148757,CVE-2021-26855,9.2,9.8,Critical,10.0.2.15,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930
-153953,CVE-2021-44228,9.3,10.0,Critical,10.0.2.15,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),Remote code execution via JNDI lookup.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975
-90317,CVE-2008-5161,4.3,,Low,10.0.2.15,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008
-19506,,,,None,10.0.2.16,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-96982,,,,Medium,10.0.2.16,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050
-104743,CVE-2017-0144,9.3,8.1,Critical,10.0.2.16,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940
-157288,,,,Medium,10.0.2.16,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040
-77823,CVE-2014-6271,,,Critical,10.0.2.16,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970
-25220,CVE-2004-2761,2.6,,Low,10.0.2.16,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006
-19506,,,,None,10.0.2.17,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-104743,CVE-2017-0144,9.3,8.1,Critical,10.0.2.17,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940
-42873,CVE-2013-2566,4.3,,Medium,10.0.2.17,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012
-90317,CVE-2008-5161,4.3,,Low,10.0.2.17,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008
-156032,CVE-2022-22965,9.2,9.8,Critical,10.0.2.17,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900
-35291,CVE-2011-3389,4.3,,Medium,10.0.2.17,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090
-94437,CVE-2016-2183,7.1,7.5,High,10.0.2.17,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310
-134862,CVE-2020-0796,9.4,10.0,Critical,10.0.2.17,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850
-19506,,,,None,10.0.2.18,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-157288,,,,Medium,10.0.2.18,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040
-104743,CVE-2017-0144,9.3,8.1,Critical,10.0.2.18,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940
-42873,CVE-2013-2566,4.3,,Medium,10.0.2.18,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012
-156032,CVE-2022-22965,9.2,9.8,Critical,10.0.2.18,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900
-78479,CVE-2014-3566,4.3,,Medium,10.0.2.18,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,0.100
-134862,CVE-2020-0796,9.4,10.0,Critical,10.0.2.18,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850
-19506,,,,None,10.0.2.19,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-156032,CVE-2022-22965,9.2,9.8,Critical,10.0.2.19,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900
-77823,CVE-2014-6271,,,Critical,10.0.2.19,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970
-151054,CVE-2021-34527,8.3,8.8,High,10.0.2.19,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800
-134862,CVE-2020-0796,9.4,10.0,Critical,10.0.2.19,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850
-148757,CVE-2021-26855,9.2,9.8,Critical,10.0.2.19,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930
-19506,,,,None,10.0.2.20,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-42873,CVE-2013-2566,4.3,,Medium,10.0.2.20,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012
-51192,,,,Medium,10.0.2.20,tcp,443,SSL Certificate Cannot Be Trusted,Certificate chain could not be verified.,Install a certificate from a trusted CA.,4.2,0.030
-78479,CVE-2014-3566,4.3,,Medium,10.0.2.20,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,0.100
-157288,,,,Medium,10.0.2.20,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040
-148757,CVE-2021-26855,9.2,9.8,Critical,10.0.2.20,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930
-96982,,,,Medium,10.0.2.20,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050
-71049,,,,Low,10.0.2.20,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006
-19506,,,,None,10.0.3.11,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-97833,CVE-2019-0708,10.0,9.8,Critical,10.0.3.11,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960
-90317,CVE-2008-5161,4.3,,Low,10.0.3.11,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008
-94437,CVE-2016-2183,7.1,7.5,High,10.0.3.11,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310
-71049,,,,Low,10.0.3.11,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006
-148757,CVE-2021-26855,9.2,9.8,Critical,10.0.3.11,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930
-25220,CVE-2004-2761,2.6,,Low,10.0.3.11,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006
-151054,CVE-2021-34527,8.3,8.8,High,10.0.3.11,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800
-19506,,,,None,10.0.3.12,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-73412,CVE-2014-0160,5.0,,High,10.0.3.12,tcp,443,OpenSSL Heartbeat Information Disclosure (Heartbleed),Memory disclosure via TLS heartbeat.,Upgrade OpenSSL to 1.0.1g or later and rotate keys.,8.5,0.970
-90317,CVE-2008-5161,4.3,,Low,10.0.3.12,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008
-71049,,,,Low,10.0.3.12,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006
-77823,CVE-2014-6271,,,Critical,10.0.3.12,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970
-25220,CVE-2004-2761,2.6,,Low,10.0.3.12,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006
-19506,,,,None,10.0.3.13,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-151054,CVE-2021-34527,8.3,8.8,High,10.0.3.13,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800
-94437,CVE-2016-2183,7.1,7.5,High,10.0.3.13,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310
-153953,CVE-2021-44228,9.3,10.0,Critical,10.0.3.13,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),Remote code execution via JNDI lookup.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975
-25220,CVE-2004-2761,2.6,,Low,10.0.3.13,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006
-157288,,,,Medium,10.0.3.13,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040
-97833,CVE-2019-0708,10.0,9.8,Critical,10.0.3.13,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960
-134862,CVE-2020-0796,9.4,10.0,Critical,10.0.3.13,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850
-19506,,,,None,10.0.3.14,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-78479,CVE-2014-3566,4.3,,Medium,10.0.3.14,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,0.100
-156032,CVE-2022-22965,9.2,9.8,Critical,10.0.3.14,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900
-90317,CVE-2008-5161,4.3,,Low,10.0.3.14,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008
-71049,,,,Low,10.0.3.14,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006
-51192,,,,Medium,10.0.3.14,tcp,443,SSL Certificate Cannot Be Trusted,Certificate chain could not be verified.,Install a certificate from a trusted CA.,4.2,0.030
-134862,CVE-2020-0796,9.4,10.0,Critical,10.0.3.14,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850
-19506,,,,None,10.0.3.15,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-94437,CVE-2016-2183,7.1,7.5,High,10.0.3.15,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310
-141843,CVE-2020-1472,9.4,10.0,Critical,10.0.3.15,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880
-104743,CVE-2017-0144,9.3,8.1,Critical,10.0.3.15,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940
-148757,CVE-2021-26855,9.2,9.8,Critical,10.0.3.15,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930
-25220,CVE-2004-2761,2.6,,Low,10.0.3.15,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006
-77823,CVE-2014-6271,,,Critical,10.0.3.15,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970
-156032,CVE-2022-22965,9.2,9.8,Critical,10.0.3.15,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900
-19506,,,,None,10.0.3.16,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-78479,CVE-2014-3566,4.3,,Medium,10.0.3.16,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,0.100
-141843,CVE-2020-1472,9.4,10.0,Critical,10.0.3.16,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880
-90317,CVE-2008-5161,4.3,,Low,10.0.3.16,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008
-151054,CVE-2021-34527,8.3,8.8,High,10.0.3.16,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800
-153953,CVE-2021-44228,9.3,10.0,Critical,10.0.3.16,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),Remote code execution via JNDI lookup.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975
-104743,CVE-2017-0144,9.3,8.1,Critical,10.0.3.16,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940
-77823,CVE-2014-6271,,,Critical,10.0.3.16,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970
-19506,,,,None,10.0.3.17,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-94437,CVE-2016-2183,7.1,7.5,High,10.0.3.17,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310
-97833,CVE-2019-0708,10.0,9.8,Critical,10.0.3.17,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960
-51192,,,,Medium,10.0.3.17,tcp,443,SSL Certificate Cannot Be Trusted,Certificate chain could not be verified.,Install a certificate from a trusted CA.,4.2,0.030
-90317,CVE-2008-5161,4.3,,Low,10.0.3.17,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008
-151054,CVE-2021-34527,8.3,8.8,High,10.0.3.17,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800
-25220,CVE-2004-2761,2.6,,Low,10.0.3.17,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006
-78479,CVE-2014-3566,4.3,,Medium,10.0.3.17,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,0.100
-35291,CVE-2011-3389,4.3,7.5,High,10.0.3.17,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,7.2
-19506,,,,None,10.0.3.18,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-73412,CVE-2014-0160,5.0,,High,10.0.3.18,tcp,443,OpenSSL Heartbeat Information Disclosure (Heartbleed),Memory disclosure via TLS heartbeat.,Upgrade OpenSSL to 1.0.1g or later and rotate keys.,8.5,0.970
-96982,,,,Medium,10.0.3.18,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050
-148757,CVE-2021-26855,9.2,9.8,Critical,10.0.3.18,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930
-151054,CVE-2021-34527,8.3,8.8,High,10.0.3.18,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800
-104743,CVE-2017-0144,9.3,8.1,Critical,10.0.3.18,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940
-157288,,,,Medium,10.0.3.18,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040
-19506,,,,None,10.0.3.19,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-90317,CVE-2008-5161,4.3,,Low,10.0.3.19,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008
-148757,CVE-2021-26855,9.2,9.8,Critical,10.0.3.19,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930
-141843,CVE-2020-1472,9.4,10.0,Critical,10.0.3.19,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880
-51192,,,,Medium,10.0.3.19,tcp,443,SSL Certificate Cannot Be Trusted,Certificate chain could not be verified.,Install a certificate from a trusted CA.,4.2,0.030
-104743,CVE-2017-0144,9.3,8.1,Critical,10.0.3.19,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940
-134862,CVE-2020-0796,9.4,10.0,Critical,10.0.3.19,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850
-19506,,,,None,10.0.3.20,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-94437,CVE-2016-2183,7.1,7.5,High,10.0.3.20,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310
-134862,CVE-2020-0796,9.4,10.0,Critical,10.0.3.20,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850
-141843,CVE-2020-1472,9.4,10.0,Critical,10.0.3.20,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880
-148757,CVE-2021-26855,9.2,9.8,Critical,10.0.3.20,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930
-97833,CVE-2019-0708,10.0,9.8,Critical,10.0.3.20,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960
-19506,,,,None,10.0.4.11,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-141843,CVE-2020-1472,9.4,10.0,Critical,10.0.4.11,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880
-71049,,,,Low,10.0.4.11,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006
-51192,,,,Medium,10.0.4.11,tcp,443,SSL Certificate Cannot Be Trusted,Certificate chain could not be verified.,Install a certificate from a trusted CA.,4.2,0.030
-25220,CVE-2004-2761,2.6,,Low,10.0.4.11,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006
-19506,,,,None,10.0.4.12,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-104743,CVE-2017-0144,9.3,8.1,Critical,10.0.4.12,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940
-148757,CVE-2021-26855,9.2,9.8,Critical,10.0.4.12,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930
-96982,,,,Medium,10.0.4.12,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050
-153953,CVE-2021-44228,9.3,10.0,Critical,10.0.4.12,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),Remote code execution via JNDI lookup.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975
-51192,,,,Medium,10.0.4.12,tcp,443,SSL Certificate Cannot Be Trusted,Certificate chain could not be verified.,Install a certificate from a trusted CA.,4.2,0.030
-156032,CVE-2022-22965,9.2,9.8,Critical,10.0.4.12,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900
-19506,,,,None,10.0.4.13,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-156032,CVE-2022-22965,9.2,9.8,Critical,10.0.4.13,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900
-134862,CVE-2020-0796,9.4,10.0,Critical,10.0.4.13,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850
-78479,CVE-2014-3566,4.3,,Medium,10.0.4.13,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,0.100
-141843,CVE-2020-1472,9.4,10.0,Critical,10.0.4.13,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880
-19506,,,,None,10.0.4.14,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-71049,,,,Low,10.0.4.14,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006
-148757,CVE-2021-26855,9.2,9.8,Critical,10.0.4.14,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930
-90317,CVE-2008-5161,4.3,,Low,10.0.4.14,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008
-96982,,,,Medium,10.0.4.14,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050
-104743,CVE-2017-0144,9.3,8.1,Critical,10.0.4.14,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940
-151054,CVE-2021-34527,8.3,8.8,High,10.0.4.14,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800
-25220,CVE-2004-2761,2.6,,Low,10.0.4.14,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006
-141843,CVE-2020-1472,9.4,10.0,Critical,10.0.4.14,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880
-19506,,,,None,10.0.4.15,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-104743,CVE-2017-0144,9.3,8.1,Critical,10.0.4.15,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940
-77823,CVE-2014-6271,,,Critical,10.0.4.15,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970
-35291,CVE-2011-3389,4.3,,Medium,10.0.4.15,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090
-151054,CVE-2021-34527,8.3,8.8,High,10.0.4.15,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800
-25220,CVE-2004-2761,2.6,,Low,10.0.4.16,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006
-151054,CVE-2021-34527,8.3,8.8,High,10.0.4.16,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800
-77823,CVE-2014-6271,,,Critical,10.0.4.16,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970
-73412,CVE-2014-0160,5.0,,High,10.0.4.16,tcp,443,OpenSSL Heartbeat Information Disclosure (Heartbleed),Memory disclosure via TLS heartbeat.,Upgrade OpenSSL to 1.0.1g or later and rotate keys.,8.5,0.970
-94437,CVE-2016-2183,7.1,7.5,High,10.0.4.16,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310
-35291,CVE-2011-3389,4.3,,Medium,10.0.4.16,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090
-19506,,,,None,10.0.4.17,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-35291,CVE-2011-3389,4.3,7.5,High,10.0.4.17,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,7.2
-148757,CVE-2021-26855,9.2,9.8,Critical,10.0.4.17,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930
-25220,CVE-2004-2761,2.6,,Low,10.0.4.17,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006
-134862,CVE-2020-0796,9.4,10.0,Critical,10.0.4.17,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850
-97833,CVE-2019-0708,10.0,9.8,Critical,10.0.4.17,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960
-19506,,,,None,10.0.4.18,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-156032,CVE-2022-22965,9.2,9.8,Critical,10.0.4.18,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900
-153953,CVE-2021-44228,9.3,10.0,Critical,10.0.4.18,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),Remote code execution via JNDI lookup.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975
-78479,CVE-2014-3566,4.3,,Medium,10.0.4.18,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,0.100
-141843,CVE-2020-1472,9.4,10.0,Critical,10.0.4.18,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880
-148757,CVE-2021-26855,9.2,9.8,Critical,10.0.4.18,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930
-71049,,,,Low,10.0.4.18,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006
-19506,,,,None,10.0.4.19,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-25220,CVE-2004-2761,2.6,,Low,10.0.4.19,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006
-151054,CVE-2021-34527,8.3,8.8,High,10.0.4.19,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800
-96982,,,,Medium,10.0.4.19,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050
-134862,CVE-2020-0796,9.4,10.0,Critical,10.0.4.19,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850
-156032,CVE-2022-22965,9.2,9.8,Critical,10.0.4.19,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900
-153953,CVE-2021-44228,9.3,10.0,Critical,10.0.4.19,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),Remote code execution via JNDI lookup.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975
-42873,CVE-2013-2566,4.3,,Medium,10.0.4.19,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012
-90317,CVE-2008-5161,4.3,,Low,10.0.4.19,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008
-19506,,,,None,10.0.4.20,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-51192,,,,Medium,10.0.4.20,tcp,443,SSL Certificate Cannot Be Trusted,Certificate chain could not be verified.,Install a certificate from a trusted CA.,4.2,0.030
-94437,CVE-2016-2183,7.1,7.5,High,10.0.4.20,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310
-77823,CVE-2014-6271,,,Critical,10.0.4.20,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970
-134862,CVE-2020-0796,9.4,10.0,Critical,10.0.4.20,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850
-35291,CVE-2011-3389,4.3,,Medium,10.0.4.20,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090
-90317,CVE-2008-5161,4.3,,Low,10.0.4.20,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008
-157288,,,,Medium,10.0.4.20,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040
-156032,CVE-2022-22965,9.2,9.8,Critical,10.0.4.20,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900
-42873,CVE-2013-2566,4.3,,Medium,10.0.3.11,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012
-35291,CVE-2011-3389,4.3,,Medium,10.0.4.11,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090
-94437,CVE-2016-2183,7.1,7.5,High,10.0.1.15,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310
-134862,CVE-2020-0796,9.4,10.0,Critical,10.0.3.17,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850
-78479,CVE-2014-3566,4.3,,Medium,10.0.3.11,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,0.100
-148757,CVE-2021-26855,9.2,9.8,Critical,10.0.1.20,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930
-77823,CVE-2014-6271,,,Critical,10.0.3.20,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970
-42873,CVE-2013-2566,4.3,,Medium,10.0.3.18,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012
-156032,CVE-2022-22965,9.2,9.8,Critical,10.0.2.15,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900
-153953,CVE-2021-44228,9.3,10.0,Critical,10.0.2.12,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),Remote code execution via JNDI lookup.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975
-25220,CVE-2004-2761,2.6,,Low,10.0.4.13,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006
-148757,CVE-2021-26855,9.2,9.8,Critical,10.0.1.16,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930
-96982,,,,Medium,10.0.2.14,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050
-90317,CVE-2008-5161,4.3,,Low,10.0.1.12,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008
-71049,,,,Low,10.0.3.16,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006
-134862,CVE-2020-0796,9.4,10.0,Critical,10.0.2.11,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850
-94437,CVE-2016-2183,7.1,7.5,High,10.0.2.15,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310
-141843,CVE-2020-1472,9.4,10.0,Critical,10.0.2.17,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880
-157288,,,,Medium,10.0.3.12,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040
-156032,CVE-2022-22965,9.2,9.8,Critical,10.0.3.16,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900
-156032,CVE-2022-22965,9.2,9.8,Critical,10.0.4.15,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900
-19506,,,,None,10.0.5.20,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,
-134862,CVE-2020-0796,9.4,10.0,Critical,10.0.5.20,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850
+Plugin ID,CVE,CVSS v2.0 Base Score,CVSS v3.0 Base Score,Risk,Host,Protocol,Port,Name,Synopsis,Solution,VPR Score,EPSS Score,Metasploit,Core Impact,CANVAS
+19506,,,,None,10.0.1.11,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+35291,CVE-2011-3389,4.3,,Medium,10.0.1.11,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090,FALSE,FALSE,FALSE
+71049,,,,Low,10.0.1.11,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006,FALSE,FALSE,FALSE
+51192,,,,Medium,10.0.1.11,tcp,443,SSL Certificate Cannot Be Trusted,Certificate chain could not be verified.,Install a certificate from a trusted CA.,4.2,0.030,FALSE,FALSE,FALSE
+151054,CVE-2021-34527,8.3,8.8,High,10.0.1.11,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800,FALSE,FALSE,FALSE
+96982,,,,Medium,10.0.1.11,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050,FALSE,FALSE,FALSE
+19506,,,,None,10.0.1.12,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+35291,CVE-2011-3389,4.3,,Medium,10.0.1.12,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090,FALSE,FALSE,FALSE
+104743,CVE-2017-0144,9.3,8.1,Critical,10.0.1.12,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940,FALSE,FALSE,FALSE
+73412,CVE-2014-0160,5.0,,High,10.0.1.12,tcp,443,OpenSSL Heartbeat Information Disclosure (Heartbleed),Memory disclosure via TLS heartbeat.,Upgrade OpenSSL to 1.0.1g or later and rotate keys.,8.5,0.970,TRUE,FALSE,FALSE
+134862,CVE-2020-0796,9.4,10.0,Critical,10.0.1.12,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850,TRUE,FALSE,FALSE
+153953,CVE-2021-44228,9.3,10.0,Critical,10.0.1.12,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),Remote code execution via JNDI lookup.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975,TRUE,TRUE,TRUE
+25220,CVE-2004-2761,2.6,,Low,10.0.1.12,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006,FALSE,FALSE,FALSE
+94437,CVE-2016-2183,7.1,7.5,High,10.0.1.12,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310,TRUE,FALSE,TRUE
+97833,CVE-2019-0708,10.0,9.8,Critical,10.0.1.12,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960,TRUE,TRUE,TRUE
+19506,,,,None,10.0.1.13,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+141843,CVE-2020-1472,9.4,10.0,Critical,10.0.1.13,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880,FALSE,TRUE,TRUE
+134862,CVE-2020-0796,9.4,10.0,Critical,10.0.1.13,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850,TRUE,FALSE,FALSE
+151054,CVE-2021-34527,8.3,8.8,High,10.0.1.13,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800,FALSE,FALSE,FALSE
+35291,CVE-2011-3389,4.3,,Medium,10.0.1.13,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090,FALSE,FALSE,FALSE
+96982,,,,Medium,10.0.1.13,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050,FALSE,FALSE,FALSE
+19506,,,,None,10.0.1.14,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+71049,,,,Low,10.0.1.14,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006,FALSE,FALSE,FALSE
+73412,CVE-2014-0160,5.0,,High,10.0.1.14,tcp,443,OpenSSL Heartbeat Information Disclosure (Heartbleed),Memory disclosure via TLS heartbeat.,Upgrade OpenSSL to 1.0.1g or later and rotate keys.,8.5,0.970,TRUE,FALSE,FALSE
+25220,CVE-2004-2761,2.6,,Low,10.0.1.14,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006,FALSE,FALSE,FALSE
+97833,CVE-2019-0708,10.0,9.8,Critical,10.0.1.14,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960,TRUE,TRUE,TRUE
+141843,CVE-2020-1472,9.4,10.0,Critical,10.0.1.14,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880,FALSE,TRUE,TRUE
+157288,,,,Medium,10.0.1.14,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040,FALSE,FALSE,FALSE
+35291,CVE-2011-3389,4.3,,Medium,10.0.1.14,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090,FALSE,FALSE,FALSE
+19506,,,,None,10.0.1.15,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+151054,CVE-2021-34527,8.3,8.8,High,10.0.1.15,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800,FALSE,FALSE,FALSE
+104743,CVE-2017-0144,9.3,8.1,Critical,10.0.1.15,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940,FALSE,FALSE,FALSE
+77823,CVE-2014-6271,,,Critical,10.0.1.15,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970,TRUE,TRUE,TRUE
+42873,CVE-2013-2566,4.3,,Medium,10.0.1.15,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012,FALSE,FALSE,FALSE
+148757,CVE-2021-26855,9.2,9.8,Critical,10.0.1.15,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930,FALSE,FALSE,FALSE
+19506,,,,None,10.0.1.16,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+42873,CVE-2013-2566,4.3,,Medium,10.0.1.16,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012,FALSE,FALSE,FALSE
+78479,CVE-2014-3566,4.3,7.5,High,10.0.1.16,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,7.2,TRUE,TRUE,TRUE
+151054,CVE-2021-34527,8.3,8.8,High,10.0.1.16,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800,FALSE,FALSE,FALSE
+134862,CVE-2020-0796,9.4,10.0,Critical,10.0.1.16,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850,TRUE,FALSE,FALSE
+19506,,,,None,10.0.1.17,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+157288,,,,Medium,10.0.1.17,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040,FALSE,FALSE,FALSE
+151054,CVE-2021-34527,8.3,8.8,High,10.0.1.17,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800,FALSE,FALSE,FALSE
+104743,CVE-2017-0144,9.3,8.1,Critical,10.0.1.17,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940,FALSE,FALSE,FALSE
+96982,,,,Medium,10.0.1.17,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050,FALSE,FALSE,FALSE
+73412,CVE-2014-0160,5.0,,High,10.0.1.17,tcp,443,OpenSSL Heartbeat Information Disclosure (Heartbleed),Memory disclosure via TLS heartbeat.,Upgrade OpenSSL to 1.0.1g or later and rotate keys.,8.5,0.970,TRUE,FALSE,FALSE
+71049,,,,Low,10.0.1.17,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006,FALSE,FALSE,FALSE
+19506,,,,None,10.0.1.18,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+148757,CVE-2021-26855,9.2,9.8,Critical,10.0.1.18,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930,FALSE,FALSE,FALSE
+97833,CVE-2019-0708,10.0,9.8,Critical,10.0.1.18,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960,TRUE,TRUE,TRUE
+151054,CVE-2021-34527,8.3,8.8,High,10.0.1.18,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800,FALSE,FALSE,FALSE
+73412,CVE-2014-0160,5.0,,High,10.0.1.18,tcp,443,OpenSSL Heartbeat Information Disclosure (Heartbleed),Memory disclosure via TLS heartbeat.,Upgrade OpenSSL to 1.0.1g or later and rotate keys.,8.5,0.970,TRUE,FALSE,FALSE
+25220,CVE-2004-2761,2.6,,Low,10.0.1.18,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006,FALSE,FALSE,FALSE
+96982,,,,Medium,10.0.1.18,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050,FALSE,FALSE,FALSE
+97833,CVE-2019-0708,10.0,9.8,Critical,10.0.1.19,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960,TRUE,TRUE,TRUE
+141843,CVE-2020-1472,9.4,10.0,Critical,10.0.1.19,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880,FALSE,TRUE,TRUE
+156032,CVE-2022-22965,9.2,9.8,Critical,10.0.1.19,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900,FALSE,TRUE,TRUE
+71049,,,,Low,10.0.1.19,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006,FALSE,FALSE,FALSE
+19506,,,,None,10.0.1.20,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+25220,CVE-2004-2761,2.6,,Low,10.0.1.20,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006,FALSE,FALSE,FALSE
+71049,,,,Low,10.0.1.20,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006,FALSE,FALSE,FALSE
+94437,CVE-2016-2183,7.1,7.5,High,10.0.1.20,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310,TRUE,FALSE,TRUE
+42873,CVE-2013-2566,4.3,7.5,High,10.0.1.20,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,7.2,FALSE,FALSE,FALSE
+153953,CVE-2021-44228,9.3,10.0,Critical,10.0.1.20,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),Remote code execution via JNDI lookup.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975,TRUE,TRUE,TRUE
+141843,CVE-2020-1472,9.4,10.0,Critical,10.0.1.20,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880,FALSE,TRUE,TRUE
+19506,,,,None,10.0.2.11,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+148757,CVE-2021-26855,9.2,9.8,Critical,10.0.2.11,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930,FALSE,FALSE,FALSE
+97833,CVE-2019-0708,10.0,9.8,Critical,10.0.2.11,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960,TRUE,TRUE,TRUE
+94437,CVE-2016-2183,7.1,7.5,High,10.0.2.11,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310,TRUE,FALSE,TRUE
+141843,CVE-2020-1472,9.4,10.0,Critical,10.0.2.11,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880,FALSE,TRUE,TRUE
+42873,CVE-2013-2566,4.3,,Medium,10.0.2.11,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012,FALSE,FALSE,FALSE
+19506,,,,None,10.0.2.12,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+71049,,,,Low,10.0.2.12,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006,FALSE,FALSE,FALSE
+77823,CVE-2014-6271,,,Critical,10.0.2.12,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970,TRUE,TRUE,TRUE
+42873,CVE-2013-2566,4.3,,Medium,10.0.2.12,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012,FALSE,FALSE,FALSE
+151054,CVE-2021-34527,8.3,8.8,High,10.0.2.12,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800,FALSE,FALSE,FALSE
+35291,CVE-2011-3389,4.3,,Medium,10.0.2.12,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090,FALSE,FALSE,FALSE
+157288,,,,Medium,10.0.2.12,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040,FALSE,FALSE,FALSE
+25220,CVE-2004-2761,2.6,,Low,10.0.2.12,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006,FALSE,FALSE,FALSE
+19506,,,,None,10.0.2.13,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+141843,CVE-2020-1472,9.4,10.0,Critical,10.0.2.13,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880,FALSE,TRUE,TRUE
+78479,CVE-2014-3566,4.3,,Medium,10.0.2.13,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,0.100,FALSE,FALSE,FALSE
+156032,CVE-2022-22965,9.2,9.8,Critical,10.0.2.13,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900,FALSE,TRUE,TRUE
+51192,,,,Medium,10.0.2.13,tcp,443,SSL Certificate Cannot Be Trusted,Certificate chain could not be verified.,Install a certificate from a trusted CA.,4.2,0.030,FALSE,FALSE,FALSE
+25220,CVE-2004-2761,2.6,,Low,10.0.2.13,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006,FALSE,FALSE,FALSE
+148757,CVE-2021-26855,9.2,9.8,Critical,10.0.2.13,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930,FALSE,FALSE,FALSE
+94437,CVE-2016-2183,7.1,7.5,High,10.0.2.13,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310,TRUE,FALSE,TRUE
+19506,,,,None,10.0.2.14,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+71049,,,,Low,10.0.2.14,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006,FALSE,FALSE,FALSE
+73412,CVE-2014-0160,5.0,,High,10.0.2.14,tcp,443,OpenSSL Heartbeat Information Disclosure (Heartbleed),Memory disclosure via TLS heartbeat.,Upgrade OpenSSL to 1.0.1g or later and rotate keys.,8.5,0.970,TRUE,FALSE,FALSE
+141843,CVE-2020-1472,9.4,10.0,Critical,10.0.2.14,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880,FALSE,TRUE,TRUE
+97833,CVE-2019-0708,10.0,9.8,Critical,10.0.2.14,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960,TRUE,TRUE,TRUE
+94437,CVE-2016-2183,7.1,7.5,High,10.0.2.14,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310,TRUE,FALSE,TRUE
+19506,,,,None,10.0.2.15,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+35291,CVE-2011-3389,4.3,,Medium,10.0.2.15,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090,FALSE,FALSE,FALSE
+104743,CVE-2017-0144,9.3,8.1,Critical,10.0.2.15,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940,FALSE,FALSE,FALSE
+141843,CVE-2020-1472,9.4,10.0,Critical,10.0.2.15,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880,FALSE,TRUE,TRUE
+148757,CVE-2021-26855,9.2,9.8,Critical,10.0.2.15,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930,FALSE,FALSE,FALSE
+153953,CVE-2021-44228,9.3,10.0,Critical,10.0.2.15,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),Remote code execution via JNDI lookup.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975,TRUE,TRUE,TRUE
+90317,CVE-2008-5161,4.3,,Low,10.0.2.15,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008,FALSE,FALSE,FALSE
+19506,,,,None,10.0.2.16,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+96982,,,,Medium,10.0.2.16,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050,FALSE,FALSE,FALSE
+104743,CVE-2017-0144,9.3,8.1,Critical,10.0.2.16,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940,FALSE,FALSE,FALSE
+157288,,,,Medium,10.0.2.16,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040,FALSE,FALSE,FALSE
+77823,CVE-2014-6271,,,Critical,10.0.2.16,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970,TRUE,TRUE,TRUE
+25220,CVE-2004-2761,2.6,,Low,10.0.2.16,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006,FALSE,FALSE,FALSE
+19506,,,,None,10.0.2.17,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+104743,CVE-2017-0144,9.3,8.1,Critical,10.0.2.17,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940,FALSE,FALSE,FALSE
+42873,CVE-2013-2566,4.3,,Medium,10.0.2.17,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012,FALSE,FALSE,FALSE
+90317,CVE-2008-5161,4.3,,Low,10.0.2.17,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008,FALSE,FALSE,FALSE
+156032,CVE-2022-22965,9.2,9.8,Critical,10.0.2.17,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900,FALSE,TRUE,TRUE
+35291,CVE-2011-3389,4.3,,Medium,10.0.2.17,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090,FALSE,FALSE,FALSE
+94437,CVE-2016-2183,7.1,7.5,High,10.0.2.17,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310,TRUE,FALSE,TRUE
+134862,CVE-2020-0796,9.4,10.0,Critical,10.0.2.17,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850,TRUE,FALSE,FALSE
+19506,,,,None,10.0.2.18,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+157288,,,,Medium,10.0.2.18,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040,FALSE,FALSE,FALSE
+104743,CVE-2017-0144,9.3,8.1,Critical,10.0.2.18,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940,FALSE,FALSE,FALSE
+42873,CVE-2013-2566,4.3,,Medium,10.0.2.18,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012,FALSE,FALSE,FALSE
+156032,CVE-2022-22965,9.2,9.8,Critical,10.0.2.18,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900,FALSE,TRUE,TRUE
+78479,CVE-2014-3566,4.3,,Medium,10.0.2.18,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,0.100,FALSE,FALSE,FALSE
+134862,CVE-2020-0796,9.4,10.0,Critical,10.0.2.18,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850,TRUE,FALSE,FALSE
+19506,,,,None,10.0.2.19,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+156032,CVE-2022-22965,9.2,9.8,Critical,10.0.2.19,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900,FALSE,TRUE,TRUE
+77823,CVE-2014-6271,,,Critical,10.0.2.19,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970,TRUE,TRUE,TRUE
+151054,CVE-2021-34527,8.3,8.8,High,10.0.2.19,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800,FALSE,FALSE,FALSE
+134862,CVE-2020-0796,9.4,10.0,Critical,10.0.2.19,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850,TRUE,FALSE,FALSE
+148757,CVE-2021-26855,9.2,9.8,Critical,10.0.2.19,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930,FALSE,FALSE,FALSE
+19506,,,,None,10.0.2.20,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+42873,CVE-2013-2566,4.3,,Medium,10.0.2.20,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012,FALSE,FALSE,FALSE
+51192,,,,Medium,10.0.2.20,tcp,443,SSL Certificate Cannot Be Trusted,Certificate chain could not be verified.,Install a certificate from a trusted CA.,4.2,0.030,FALSE,FALSE,FALSE
+78479,CVE-2014-3566,4.3,,Medium,10.0.2.20,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,0.100,FALSE,FALSE,FALSE
+157288,,,,Medium,10.0.2.20,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040,FALSE,FALSE,FALSE
+148757,CVE-2021-26855,9.2,9.8,Critical,10.0.2.20,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930,FALSE,FALSE,FALSE
+96982,,,,Medium,10.0.2.20,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050,FALSE,FALSE,FALSE
+71049,,,,Low,10.0.2.20,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006,FALSE,FALSE,FALSE
+19506,,,,None,10.0.3.11,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+97833,CVE-2019-0708,10.0,9.8,Critical,10.0.3.11,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960,TRUE,TRUE,TRUE
+90317,CVE-2008-5161,4.3,,Low,10.0.3.11,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008,FALSE,FALSE,FALSE
+94437,CVE-2016-2183,7.1,7.5,High,10.0.3.11,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310,TRUE,FALSE,TRUE
+71049,,,,Low,10.0.3.11,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006,FALSE,FALSE,FALSE
+148757,CVE-2021-26855,9.2,9.8,Critical,10.0.3.11,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930,FALSE,FALSE,FALSE
+25220,CVE-2004-2761,2.6,,Low,10.0.3.11,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006,FALSE,FALSE,FALSE
+151054,CVE-2021-34527,8.3,8.8,High,10.0.3.11,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800,FALSE,FALSE,FALSE
+19506,,,,None,10.0.3.12,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+73412,CVE-2014-0160,5.0,,High,10.0.3.12,tcp,443,OpenSSL Heartbeat Information Disclosure (Heartbleed),Memory disclosure via TLS heartbeat.,Upgrade OpenSSL to 1.0.1g or later and rotate keys.,8.5,0.970,TRUE,FALSE,FALSE
+90317,CVE-2008-5161,4.3,,Low,10.0.3.12,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008,FALSE,FALSE,FALSE
+71049,,,,Low,10.0.3.12,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006,FALSE,FALSE,FALSE
+77823,CVE-2014-6271,,,Critical,10.0.3.12,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970,TRUE,TRUE,TRUE
+25220,CVE-2004-2761,2.6,,Low,10.0.3.12,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006,FALSE,FALSE,FALSE
+19506,,,,None,10.0.3.13,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+151054,CVE-2021-34527,8.3,8.8,High,10.0.3.13,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800,FALSE,FALSE,FALSE
+94437,CVE-2016-2183,7.1,7.5,High,10.0.3.13,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310,TRUE,FALSE,TRUE
+153953,CVE-2021-44228,9.3,10.0,Critical,10.0.3.13,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),Remote code execution via JNDI lookup.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975,TRUE,TRUE,TRUE
+25220,CVE-2004-2761,2.6,,Low,10.0.3.13,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006,FALSE,FALSE,FALSE
+157288,,,,Medium,10.0.3.13,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040,FALSE,FALSE,FALSE
+97833,CVE-2019-0708,10.0,9.8,Critical,10.0.3.13,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960,TRUE,TRUE,TRUE
+134862,CVE-2020-0796,9.4,10.0,Critical,10.0.3.13,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850,TRUE,FALSE,FALSE
+19506,,,,None,10.0.3.14,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+78479,CVE-2014-3566,4.3,,Medium,10.0.3.14,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,0.100,FALSE,FALSE,FALSE
+156032,CVE-2022-22965,9.2,9.8,Critical,10.0.3.14,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900,FALSE,TRUE,TRUE
+90317,CVE-2008-5161,4.3,,Low,10.0.3.14,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008,FALSE,FALSE,FALSE
+71049,,,,Low,10.0.3.14,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006,FALSE,FALSE,FALSE
+51192,,,,Medium,10.0.3.14,tcp,443,SSL Certificate Cannot Be Trusted,Certificate chain could not be verified.,Install a certificate from a trusted CA.,4.2,0.030,FALSE,FALSE,FALSE
+134862,CVE-2020-0796,9.4,10.0,Critical,10.0.3.14,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850,TRUE,FALSE,FALSE
+19506,,,,None,10.0.3.15,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+94437,CVE-2016-2183,7.1,7.5,High,10.0.3.15,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310,TRUE,FALSE,TRUE
+141843,CVE-2020-1472,9.4,10.0,Critical,10.0.3.15,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880,FALSE,TRUE,TRUE
+104743,CVE-2017-0144,9.3,8.1,Critical,10.0.3.15,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940,FALSE,FALSE,FALSE
+148757,CVE-2021-26855,9.2,9.8,Critical,10.0.3.15,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930,FALSE,FALSE,FALSE
+25220,CVE-2004-2761,2.6,,Low,10.0.3.15,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006,FALSE,FALSE,FALSE
+77823,CVE-2014-6271,,,Critical,10.0.3.15,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970,TRUE,TRUE,TRUE
+156032,CVE-2022-22965,9.2,9.8,Critical,10.0.3.15,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900,FALSE,TRUE,TRUE
+19506,,,,None,10.0.3.16,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+78479,CVE-2014-3566,4.3,,Medium,10.0.3.16,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,0.100,FALSE,FALSE,FALSE
+141843,CVE-2020-1472,9.4,10.0,Critical,10.0.3.16,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880,FALSE,TRUE,TRUE
+90317,CVE-2008-5161,4.3,,Low,10.0.3.16,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008,FALSE,FALSE,FALSE
+151054,CVE-2021-34527,8.3,8.8,High,10.0.3.16,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800,FALSE,FALSE,FALSE
+153953,CVE-2021-44228,9.3,10.0,Critical,10.0.3.16,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),Remote code execution via JNDI lookup.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975,TRUE,TRUE,TRUE
+104743,CVE-2017-0144,9.3,8.1,Critical,10.0.3.16,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940,FALSE,FALSE,FALSE
+77823,CVE-2014-6271,,,Critical,10.0.3.16,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970,TRUE,TRUE,TRUE
+19506,,,,None,10.0.3.17,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+94437,CVE-2016-2183,7.1,7.5,High,10.0.3.17,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310,TRUE,FALSE,TRUE
+97833,CVE-2019-0708,10.0,9.8,Critical,10.0.3.17,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960,TRUE,TRUE,TRUE
+51192,,,,Medium,10.0.3.17,tcp,443,SSL Certificate Cannot Be Trusted,Certificate chain could not be verified.,Install a certificate from a trusted CA.,4.2,0.030,FALSE,FALSE,FALSE
+90317,CVE-2008-5161,4.3,,Low,10.0.3.17,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008,FALSE,FALSE,FALSE
+151054,CVE-2021-34527,8.3,8.8,High,10.0.3.17,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800,FALSE,FALSE,FALSE
+25220,CVE-2004-2761,2.6,,Low,10.0.3.17,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006,FALSE,FALSE,FALSE
+78479,CVE-2014-3566,4.3,,Medium,10.0.3.17,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,0.100,FALSE,FALSE,FALSE
+35291,CVE-2011-3389,4.3,7.5,High,10.0.3.17,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,7.2,TRUE,FALSE,TRUE
+19506,,,,None,10.0.3.18,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+73412,CVE-2014-0160,5.0,,High,10.0.3.18,tcp,443,OpenSSL Heartbeat Information Disclosure (Heartbleed),Memory disclosure via TLS heartbeat.,Upgrade OpenSSL to 1.0.1g or later and rotate keys.,8.5,0.970,TRUE,FALSE,FALSE
+96982,,,,Medium,10.0.3.18,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050,FALSE,FALSE,FALSE
+148757,CVE-2021-26855,9.2,9.8,Critical,10.0.3.18,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930,FALSE,FALSE,FALSE
+151054,CVE-2021-34527,8.3,8.8,High,10.0.3.18,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800,FALSE,FALSE,FALSE
+104743,CVE-2017-0144,9.3,8.1,Critical,10.0.3.18,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940,FALSE,FALSE,FALSE
+157288,,,,Medium,10.0.3.18,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040,FALSE,FALSE,FALSE
+19506,,,,None,10.0.3.19,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+90317,CVE-2008-5161,4.3,,Low,10.0.3.19,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008,FALSE,FALSE,FALSE
+148757,CVE-2021-26855,9.2,9.8,Critical,10.0.3.19,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930,FALSE,FALSE,FALSE
+141843,CVE-2020-1472,9.4,10.0,Critical,10.0.3.19,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880,FALSE,TRUE,TRUE
+51192,,,,Medium,10.0.3.19,tcp,443,SSL Certificate Cannot Be Trusted,Certificate chain could not be verified.,Install a certificate from a trusted CA.,4.2,0.030,FALSE,FALSE,FALSE
+104743,CVE-2017-0144,9.3,8.1,Critical,10.0.3.19,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940,FALSE,FALSE,FALSE
+134862,CVE-2020-0796,9.4,10.0,Critical,10.0.3.19,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850,TRUE,FALSE,FALSE
+19506,,,,None,10.0.3.20,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+94437,CVE-2016-2183,7.1,7.5,High,10.0.3.20,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310,TRUE,FALSE,TRUE
+134862,CVE-2020-0796,9.4,10.0,Critical,10.0.3.20,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850,TRUE,FALSE,FALSE
+141843,CVE-2020-1472,9.4,10.0,Critical,10.0.3.20,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880,FALSE,TRUE,TRUE
+148757,CVE-2021-26855,9.2,9.8,Critical,10.0.3.20,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930,FALSE,FALSE,FALSE
+97833,CVE-2019-0708,10.0,9.8,Critical,10.0.3.20,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960,TRUE,TRUE,TRUE
+19506,,,,None,10.0.4.11,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+141843,CVE-2020-1472,9.4,10.0,Critical,10.0.4.11,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880,FALSE,TRUE,TRUE
+71049,,,,Low,10.0.4.11,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006,FALSE,FALSE,FALSE
+51192,,,,Medium,10.0.4.11,tcp,443,SSL Certificate Cannot Be Trusted,Certificate chain could not be verified.,Install a certificate from a trusted CA.,4.2,0.030,FALSE,FALSE,FALSE
+25220,CVE-2004-2761,2.6,,Low,10.0.4.11,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006,FALSE,FALSE,FALSE
+19506,,,,None,10.0.4.12,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+104743,CVE-2017-0144,9.3,8.1,Critical,10.0.4.12,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940,FALSE,FALSE,FALSE
+148757,CVE-2021-26855,9.2,9.8,Critical,10.0.4.12,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930,FALSE,FALSE,FALSE
+96982,,,,Medium,10.0.4.12,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050,FALSE,FALSE,FALSE
+153953,CVE-2021-44228,9.3,10.0,Critical,10.0.4.12,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),Remote code execution via JNDI lookup.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975,TRUE,TRUE,TRUE
+51192,,,,Medium,10.0.4.12,tcp,443,SSL Certificate Cannot Be Trusted,Certificate chain could not be verified.,Install a certificate from a trusted CA.,4.2,0.030,FALSE,FALSE,FALSE
+156032,CVE-2022-22965,9.2,9.8,Critical,10.0.4.12,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900,FALSE,TRUE,TRUE
+19506,,,,None,10.0.4.13,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+156032,CVE-2022-22965,9.2,9.8,Critical,10.0.4.13,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900,FALSE,TRUE,TRUE
+134862,CVE-2020-0796,9.4,10.0,Critical,10.0.4.13,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850,TRUE,FALSE,FALSE
+78479,CVE-2014-3566,4.3,,Medium,10.0.4.13,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,0.100,FALSE,FALSE,FALSE
+141843,CVE-2020-1472,9.4,10.0,Critical,10.0.4.13,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880,FALSE,TRUE,TRUE
+19506,,,,None,10.0.4.14,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+71049,,,,Low,10.0.4.14,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006,FALSE,FALSE,FALSE
+148757,CVE-2021-26855,9.2,9.8,Critical,10.0.4.14,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930,FALSE,FALSE,FALSE
+90317,CVE-2008-5161,4.3,,Low,10.0.4.14,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008,FALSE,FALSE,FALSE
+96982,,,,Medium,10.0.4.14,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050,FALSE,FALSE,FALSE
+104743,CVE-2017-0144,9.3,8.1,Critical,10.0.4.14,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940,FALSE,FALSE,FALSE
+151054,CVE-2021-34527,8.3,8.8,High,10.0.4.14,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800,FALSE,FALSE,FALSE
+25220,CVE-2004-2761,2.6,,Low,10.0.4.14,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006,FALSE,FALSE,FALSE
+141843,CVE-2020-1472,9.4,10.0,Critical,10.0.4.14,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880,FALSE,TRUE,TRUE
+19506,,,,None,10.0.4.15,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+104743,CVE-2017-0144,9.3,8.1,Critical,10.0.4.15,tcp,445,MS17-010 EternalBlue SMB Remote Code Execution,RCE via crafted SMBv1 packets.,Apply the MS17-010 security update.,9.6,0.940,FALSE,FALSE,FALSE
+77823,CVE-2014-6271,,,Critical,10.0.4.15,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970,TRUE,TRUE,TRUE
+35291,CVE-2011-3389,4.3,,Medium,10.0.4.15,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090,FALSE,FALSE,FALSE
+151054,CVE-2021-34527,8.3,8.8,High,10.0.4.15,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800,FALSE,FALSE,FALSE
+25220,CVE-2004-2761,2.6,,Low,10.0.4.16,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006,FALSE,FALSE,FALSE
+151054,CVE-2021-34527,8.3,8.8,High,10.0.4.16,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800,FALSE,FALSE,FALSE
+77823,CVE-2014-6271,,,Critical,10.0.4.16,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970,TRUE,TRUE,TRUE
+73412,CVE-2014-0160,5.0,,High,10.0.4.16,tcp,443,OpenSSL Heartbeat Information Disclosure (Heartbleed),Memory disclosure via TLS heartbeat.,Upgrade OpenSSL to 1.0.1g or later and rotate keys.,8.5,0.970,TRUE,FALSE,FALSE
+94437,CVE-2016-2183,7.1,7.5,High,10.0.4.16,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310,TRUE,FALSE,TRUE
+35291,CVE-2011-3389,4.3,,Medium,10.0.4.16,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090,FALSE,FALSE,FALSE
+19506,,,,None,10.0.4.17,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+35291,CVE-2011-3389,4.3,7.5,High,10.0.4.17,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,7.2,TRUE,FALSE,TRUE
+148757,CVE-2021-26855,9.2,9.8,Critical,10.0.4.17,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930,FALSE,FALSE,FALSE
+25220,CVE-2004-2761,2.6,,Low,10.0.4.17,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006,FALSE,FALSE,FALSE
+134862,CVE-2020-0796,9.4,10.0,Critical,10.0.4.17,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850,TRUE,FALSE,FALSE
+97833,CVE-2019-0708,10.0,9.8,Critical,10.0.4.17,tcp,3389,MS RDP Remote Code Execution (BlueKeep),Pre-auth RCE in Remote Desktop Services.,Apply the Microsoft update for CVE-2019-0708.,9.9,0.960,TRUE,TRUE,TRUE
+19506,,,,None,10.0.4.18,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+156032,CVE-2022-22965,9.2,9.8,Critical,10.0.4.18,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900,FALSE,TRUE,TRUE
+153953,CVE-2021-44228,9.3,10.0,Critical,10.0.4.18,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),Remote code execution via JNDI lookup.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975,TRUE,TRUE,TRUE
+78479,CVE-2014-3566,4.3,,Medium,10.0.4.18,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,0.100,FALSE,FALSE,FALSE
+141843,CVE-2020-1472,9.4,10.0,Critical,10.0.4.18,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880,FALSE,TRUE,TRUE
+148757,CVE-2021-26855,9.2,9.8,Critical,10.0.4.18,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930,FALSE,FALSE,FALSE
+71049,,,,Low,10.0.4.18,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006,FALSE,FALSE,FALSE
+19506,,,,None,10.0.4.19,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+25220,CVE-2004-2761,2.6,,Low,10.0.4.19,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006,FALSE,FALSE,FALSE
+151054,CVE-2021-34527,8.3,8.8,High,10.0.4.19,tcp,445,Windows Print Spooler RCE (PrintNightmare),RCE via Print Spooler.,Apply the July 2021 Microsoft updates; disable Print Spooler where unneeded.,8.7,0.800,FALSE,FALSE,FALSE
+96982,,,,Medium,10.0.4.19,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050,FALSE,FALSE,FALSE
+134862,CVE-2020-0796,9.4,10.0,Critical,10.0.4.19,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850,TRUE,FALSE,FALSE
+156032,CVE-2022-22965,9.2,9.8,Critical,10.0.4.19,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900,FALSE,TRUE,TRUE
+153953,CVE-2021-44228,9.3,10.0,Critical,10.0.4.19,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),Remote code execution via JNDI lookup.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975,TRUE,TRUE,TRUE
+42873,CVE-2013-2566,4.3,,Medium,10.0.4.19,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012,FALSE,FALSE,FALSE
+90317,CVE-2008-5161,4.3,,Low,10.0.4.19,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008,FALSE,FALSE,FALSE
+19506,,,,None,10.0.4.20,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+51192,,,,Medium,10.0.4.20,tcp,443,SSL Certificate Cannot Be Trusted,Certificate chain could not be verified.,Install a certificate from a trusted CA.,4.2,0.030,FALSE,FALSE,FALSE
+94437,CVE-2016-2183,7.1,7.5,High,10.0.4.20,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310,TRUE,FALSE,TRUE
+77823,CVE-2014-6271,,,Critical,10.0.4.20,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970,TRUE,TRUE,TRUE
+134862,CVE-2020-0796,9.4,10.0,Critical,10.0.4.20,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850,TRUE,FALSE,FALSE
+35291,CVE-2011-3389,4.3,,Medium,10.0.4.20,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090,FALSE,FALSE,FALSE
+90317,CVE-2008-5161,4.3,,Low,10.0.4.20,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008,FALSE,FALSE,FALSE
+157288,,,,Medium,10.0.4.20,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040,FALSE,FALSE,FALSE
+156032,CVE-2022-22965,9.2,9.8,Critical,10.0.4.20,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900,FALSE,TRUE,TRUE
+42873,CVE-2013-2566,4.3,,Medium,10.0.3.11,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012,FALSE,FALSE,FALSE
+35291,CVE-2011-3389,4.3,,Medium,10.0.4.11,tcp,443,SSL/TLS BEAST Vulnerability,CBC plaintext recovery in TLS 1.0.,Configure the server to prefer TLS 1.2 or later.,4.0,0.090,FALSE,FALSE,FALSE
+94437,CVE-2016-2183,7.1,7.5,High,10.0.1.15,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310,TRUE,FALSE,TRUE
+134862,CVE-2020-0796,9.4,10.0,Critical,10.0.3.17,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850,TRUE,FALSE,FALSE
+78479,CVE-2014-3566,4.3,,Medium,10.0.3.11,tcp,443,SSLv3 Padding Oracle (POODLE),Plaintext recovery via SSLv3.,Disable SSLv3 and enable TLS_FALLBACK_SCSV.,4.5,0.100,FALSE,FALSE,FALSE
+148757,CVE-2021-26855,9.2,9.8,Critical,10.0.1.20,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930,FALSE,FALSE,FALSE
+77823,CVE-2014-6271,,,Critical,10.0.3.20,tcp,80,Bash Remote Code Execution (Shellshock),RCE via crafted environment variables.,Update Bash to a patched version.,9.0,0.970,TRUE,TRUE,TRUE
+42873,CVE-2013-2566,4.3,,Medium,10.0.3.18,tcp,443,SSL RC4 Cipher Suites Supported (Bar Mitzvah),RC4 keystream biases.,Reconfigure the service to disable RC4.,4.4,0.012,FALSE,FALSE,FALSE
+156032,CVE-2022-22965,9.2,9.8,Critical,10.0.2.15,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900,FALSE,TRUE,TRUE
+153953,CVE-2021-44228,9.3,10.0,Critical,10.0.2.12,tcp,8080,Apache Log4j Remote Code Execution (Log4Shell),Remote code execution via JNDI lookup.,Upgrade Log4j to 2.17.1 or later.,9.8,0.975,TRUE,TRUE,TRUE
+25220,CVE-2004-2761,2.6,,Low,10.0.4.13,tcp,443,SSL Certificate Signed Using Weak Hashing (MD5/SHA-1),Weak signature algorithm.,Reissue the certificate using SHA-256 or stronger.,2.3,0.006,FALSE,FALSE,FALSE
+148757,CVE-2021-26855,9.2,9.8,Critical,10.0.1.16,tcp,443,Microsoft Exchange SSRF (ProxyLogon),Pre-auth SSRF leading to RCE.,Apply the Exchange cumulative and security updates.,9.5,0.930,FALSE,FALSE,FALSE
+96982,,,,Medium,10.0.2.14,tcp,445,SMBv1 Protocol Enabled,Legacy SMBv1 enabled.,Disable SMBv1 on the host.,5.1,0.050,FALSE,FALSE,FALSE
+90317,CVE-2008-5161,4.3,,Low,10.0.1.12,tcp,22,SSH Weak Encryption Algorithms Supported,Weak SSH ciphers allowed.,Disable weak SSH encryption algorithms.,3.1,0.008,FALSE,FALSE,FALSE
+71049,,,,Low,10.0.3.16,tcp,22,SSH Weak MAC Algorithms Enabled,Weak SSH MACs allowed.,Disable MD5 and 96-bit MAC algorithms.,2.6,0.006,FALSE,FALSE,FALSE
+134862,CVE-2020-0796,9.4,10.0,Critical,10.0.2.11,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850,TRUE,FALSE,FALSE
+94437,CVE-2016-2183,7.1,7.5,High,10.0.2.15,tcp,443,SSL/TLS Birthday Attack on 64-bit Block Ciphers (SWEET32),3DES/Blowfish birthday attack.,Disable 3DES and other 64-bit block ciphers.,5.9,0.310,TRUE,FALSE,TRUE
+141843,CVE-2020-1472,9.4,10.0,Critical,10.0.2.17,tcp,445,Netlogon Elevation of Privilege (Zerologon),Privilege escalation via Netlogon.,Apply the August 2020 Microsoft updates and enforce secure RPC.,9.4,0.880,FALSE,TRUE,TRUE
+157288,,,,Medium,10.0.3.12,tcp,443,TLS Version 1.0 Protocol Detection,Deprecated TLS 1.0 in use.,Disable TLS 1.0 and 1.1; enable TLS 1.2+.,3.6,0.040,FALSE,FALSE,FALSE
+156032,CVE-2022-22965,9.2,9.8,Critical,10.0.3.16,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900,FALSE,TRUE,TRUE
+156032,CVE-2022-22965,9.2,9.8,Critical,10.0.4.15,tcp,8080,Spring Framework RCE (Spring4Shell),RCE via data binding on JDK 9+.,Upgrade Spring Framework to a fixed version.,9.1,0.900,FALSE,TRUE,TRUE
+19506,,,,None,10.0.5.20,tcp,0,Nessus Scan Information,Information about the Nessus scan.,n/a,,,FALSE,FALSE,FALSE
+134862,CVE-2020-0796,9.4,10.0,Critical,10.0.5.20,tcp,445,SMBv3 Compression RCE (SMBGhost),RCE via SMBv3.1.1 compression.,Apply the Microsoft update for CVE-2020-0796.,8.9,0.850,TRUE,FALSE,FALSE

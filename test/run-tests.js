@@ -253,6 +253,28 @@ console.log('\n[9e] 新增 CVE 統計：涵蓋持續弱點內容變更後新出�
   ok('該列被歸類為 changed(CVE)', changed && changed.changeTypes.includes('CVE'), JSON.stringify(changed && changed.changeTypes));
 })();
 
+console.log('\n[9g] 可利用性欄位（Metasploit / Core Impact / CANVAS）解析、變更與統計');
+(function () {
+  const HH = 'Host,Plugin ID,Risk,CVE,Metasploit,Core Impact,CANVAS';
+  const raw = C.parseCSV(HH + '\n' +
+    '1.1.1.1,10,Critical,CVE-2020-1,TRUE,false,FALSE\n' +   // 僅 MSF → 已武器化
+    '1.1.1.1,11,High,CVE-2020-2,false,false,false\n' +      // 皆否 → 未武器化
+    '2.2.2.2,12,High,CVE-2020-3,true,TRUE,true\n');          // 三者皆是
+  const { recs } = C.normalize(raw, C.mapColumns(raw[0]));
+  eq('TRUE 解析為 true', recs[0].metasploit, true);
+  eq('false 解析為 false', recs[0].coreImpact, false);
+  eq('任一為真 → exploited', recs[0].exploited, true);
+  eq('皆否 → 未武器化', recs[1].exploited, false);
+  ok('三者皆真', recs[2].metasploit && recs[2].coreImpact && recs[2].canvas, JSON.stringify(recs[2]));
+  // 變更：未武器化 → 有 Metasploit 應標「可利用」
+  const b = { risk: 'High', vpr: 7, epss: 0.3, cvss: 7.5, cve: 'CVE-1', name: 'A', solution: 'p', metasploit: false, coreImpact: false, canvas: false };
+  eq('新增 Metasploit → 可利用變更', C.classifyChange(b, Object.assign({}, b, { metasploit: true, exploited: true })).join(','), '可利用');
+  eq('可利用性無變化 → 空', C.classifyChange(b, Object.assign({}, b, {})).length, 0);
+  // 統計：可被利用漏洞數
+  const st = C.computeStats([], recs, C.computeRows([], recs));
+  eq('可被利用漏洞數', st.exploitable, 2);
+})();
+
 console.log('\n[9f] 正式報告欄位正規化（Description / Plugin Output / See Also / 資產 / 追蹤）');
 (function () {
   const HH = 'Host,Plugin ID,Description,Plugin Output,See Also,Operating System,DNS Name,處理狀態,負責人,備註';

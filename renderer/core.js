@@ -98,6 +98,9 @@
     cvss2:    ['cvss v2.0 base score', 'cvss base score', 'cvss'],
     vpr:      ['vpr score', 'vpr', 'vulnerability priority rating'],
     epss:     ['epss score', 'epss'],
+    metasploit: ['metasploit', 'metasploit exploit', 'exploited by metasploit'],
+    coreImpact: ['core impact', 'coreimpact', 'exploited by core impact'],
+    canvas:     ['canvas', 'exploited by canvas'],
     synopsis: ['synopsis'],
     solution: ['solution', 'remediation', 'steps to remediate'],
     description: ['description'],
@@ -150,6 +153,8 @@
   // 保留數字版工具（測試/相容）：非法值回 null（不夾值）。
   function normEpss(v) { if (v == null) return null; let x = v > 1 ? v / 100 : v; return (x < 0 || x > 1) ? null : x; }
   function normVpr(v) { if (v == null) return null; return (v < 0 || v > 10) ? null : v; }
+  // Nessus 的 Metasploit / Core Impact / CANVAS 欄位以 TRUE/FALSE 標記該框架是否已有可利用模組。
+  function parseBool(raw) { const s = String(raw == null ? '' : raw).trim().toLowerCase(); return s === 'true' || s === 't' || s === 'yes' || s === 'y' || s === '1'; }
 
   // 將 rawRows（含表頭）正規化為記錄陣列，並回報：略過列數、資料問題(issues)、重複列(dupes)。
   // 數值非法值一律標記為 issue 並存 null（不夾到最大值）。
@@ -171,8 +176,11 @@
       const ep = parseEpssRaw(get(r, 'epss')); if (ep.issue) addIssue(line, 'EPSS', get(r, 'epss'), ep.issue);
       const cvss = (c3.value != null) ? c3.value : c2.value;
       const risk = normRisk(get(r, 'risk'), cvss);
+      const msf = parseBool(get(r, 'metasploit')), coreImp = parseBool(get(r, 'coreImpact')), canv = parseBool(get(r, 'canvas'));
       const rec = {
         host, pluginId: pid,
+        metasploit: msf, coreImpact: coreImp, canvas: canv,
+        exploited: msf || coreImp || canv,   // 任一 exploit 框架具備可利用模組 → 視為「已武器化」
         name: String(get(r, 'name')).trim() || ('Plugin ' + pid),
         risk, riskLevel: RISK_LEVEL[risk] || 0,
         cve: String(get(r, 'cve')).trim(),
@@ -260,6 +268,7 @@
       host: rec.host, pluginId: rec.pluginId, port: rec.port, protocol: rec.protocol,
       name: rec.name, risk: rec.risk, riskLevel: rec.riskLevel, cve: rec.cve,
       cvss: rec.cvss, vpr: rec.vpr, epss: rec.epss, status,
+      metasploit: !!rec.metasploit, coreImpact: !!rec.coreImpact, canvas: !!rec.canvas, exploited: !!rec.exploited,
       oldRisk: oldRec ? oldRec.risk : null,
       disposition: rec.disposition || '', owner: rec.owner || '',
       changeTypes: changeTypes || [],
@@ -275,6 +284,9 @@
     if (normCveStr(o.cve) !== normCveStr(n.cve)) t.push('CVE');
     if (o.name !== n.name) t.push('名稱');
     if ((o.solution || '') !== (n.solution || '')) t.push('修補');
+    // 可利用性變化：任一 exploit 框架（Metasploit/Core Impact/CANVAS）有無改變
+    const expSig = x => (x.metasploit ? 'M' : '') + (x.coreImpact ? 'C' : '') + (x.canvas ? 'V' : '');
+    if (expSig(o) !== expSig(n)) t.push('可利用');
     return t;
   }
 
@@ -343,6 +355,9 @@
     }
     // 內容變更（僅內容、非風險/分數）計數，供報告說明
     st.contentChanged = rows.filter(r => r.status === 'changed' && r.changeTypes && !r.changeTypes.includes('風險') && !r.changeTypes.includes('分數')).length;
+    // 可被利用漏洞數（已武器化：任一 exploit 框架具備模組）
+    st.exploitable = primary.filter(r => r.exploited).length;
+    st.oldExploitable = oldRecs.filter(r => r.exploited).length;
     return st;
   }
 
