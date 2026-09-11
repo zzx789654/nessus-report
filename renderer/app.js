@@ -627,8 +627,12 @@
 
   function openColMenu(cfg, c, btn) {
     closeColMenu();
-    const opts = colOptions(c, cfg.rows());
+    // 串聯篩選：選項依「通過其他欄位篩選後的目前資料」計算（排除本欄自身的篩選），避免湊出 0 筆。
+    let opts = colOptions(c, rowsForColMenu(cfg, c));
     const selected = new Set(Array.isArray(cfg.getState()[c.key]) ? cfg.getState()[c.key] : []);
+    // 保留「已選但目前（其他欄篩選後）已無資料」的項目，讓使用者仍能取消勾選它。
+    const absent = new Set();
+    for (const k of selected) if (opts.indexOf(k) === -1) { opts = opts.concat([k]); absent.add(k); }
     const menu = document.createElement('div');
     menu.className = 'cf-menu'; menu._key = cfg.id + '/' + c.key;
     // 工具列：全選 / 清除
@@ -671,7 +675,8 @@
         const row = document.createElement('label'); row.className = 'cf-row';
         const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = selected.has(key);
         cb.addEventListener('change', () => { if (cb.checked) selected.add(key); else selected.delete(key); apply(); });
-        const txt = document.createElement('span'); txt.className = 'cf-txt'; txt.textContent = label;
+        const txt = document.createElement('span'); txt.className = 'cf-txt'; txt.textContent = absent.has(key) ? label + '（目前無資料）' : label;
+        if (absent.has(key)) row.classList.add('cf-row-absent');
         row.appendChild(cb); row.appendChild(txt); list.appendChild(row);
       }
       if (!shown) { const e = document.createElement('div'); e.className = 'cf-empty'; e.textContent = '無相符選項'; list.appendChild(e); }
@@ -711,6 +716,15 @@
       if (!hit) return false;
     }
     return true;
+  }
+  // 串聯篩選：計算「通過除了 c 以外所有已選欄位」的列，作為 c 欄下拉的選項來源。
+  function rowsForColMenu(cfg, c) {
+    const other = activeColFilters(cfg).filter(f => f.c.key !== c.key);
+    const all = cfg.rows();
+    if (!other.length) return all;
+    const out = [];
+    for (const r of all) if (rowPassesColFilters(other, r)) out.push(r);
+    return out;
   }
 
   // 差異比對矩陣的篩選設定

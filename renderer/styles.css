@@ -190,6 +190,7 @@ button { font-family: inherit; }
 .cf-menu .cf-row:hover { background: rgba(255,255,255,.1); }
 .cf-menu .cf-row input { cursor: pointer; flex: none; }
 .cf-menu .cf-row .cf-txt { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.cf-menu .cf-row-absent .cf-txt { opacity: .5; font-style: italic; }
 .cf-menu .cf-empty { padding: 8px 6px; font-size: 10px; color: var(--text-faint); text-align: center; }
 .vviewport { position: relative; height: 60vh; overflow-y: auto; overflow-x: hidden; }
 .vspacer { position: absolute; top: 0; left: 0; width: 1px; }
