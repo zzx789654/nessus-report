@@ -148,7 +148,7 @@
           <h3>CVSS ×（EPSS / VPR）優先處理四象限 <span class="src-badge" id="src-quadrant"></span></h3>
           <p class="panel-hint">
             縱軸固定為 <b>CVSS v2.0</b>（漏洞本質嚴重度）；橫軸可切換 <b>EPSS</b>（被實際利用機率）或 <b>VPR</b>（Tenable 優先分數）。
-            <b>右上角＝高嚴重度且高可利用性/高優先，最該先修</b>。顏色＝嚴重度，形狀＝本次新增（菱形）或持續（圓形）。
+            <b>右上角＝高嚴重度且高可利用性/高優先，最該先修</b>。顏色＝嚴重度<span id="q-shape-legend">，形狀＝本次新增（菱形）或持續（圓形）</span>。
           </p>
           <div class="quadrant-controls">
             <div class="viewtoggle" role="tablist" aria-label="四象限聚合方式">
@@ -161,7 +161,7 @@
             </div>
             <label>橫軸門檻 <input type="number" id="q-xthresh" class="input input-num" min="0" max="1" step="0.05" value="0.5" /></label>
             <label>CVSS 門檻 <input type="number" id="q-ythresh" class="input input-num" min="0" max="10" step="0.5" value="7" /></label>
-            <label class="chk"><input type="checkbox" id="q-added-only" /> 只看本次新增</label>
+            <label class="chk" id="q-added-wrap"><input type="checkbox" id="q-added-only" /> 只看本次新增</label>
           </div>
           <div id="chart-quadrant" class="chart-holder tall"></div>
         </div>

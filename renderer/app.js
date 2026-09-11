@@ -1430,6 +1430,15 @@
   function renderCharts() {
     if (!S.stats) return;
     hideTip();
+    // 「本次新增」是差異概念（新版才有、舊版沒有）：僅在 diff 模式且檢視新版時，
+    // 才顯示「只看本次新增」勾選與菱形圖例；舊版或單一來源時隱藏並取消勾選，避免誤導與空圖。
+    {
+      const showAdded = (S.stats.mode === 'diff') && S.viewSource === 'new';
+      const wrap = $('#q-added-wrap'), leg = $('#q-shape-legend'), cb = $('#q-added-only');
+      if (wrap) wrap.style.display = showAdded ? '' : 'none';
+      if (leg) leg.style.display = showAdded ? '' : 'none';
+      if (!showAdded && cb && cb.checked) cb.checked = false;
+    }
     // 依 IP 篩選即時計算本分頁圖表的資料集（未選任何主機 → 顯示提示，不畫）
     const sel = S.chartHosts;
     const allHosts = S.hostPriority.length;
