@@ -368,9 +368,8 @@
         pts.push({ x: xv, y: yv, risk: r.risk, host: r.host, name: r.name, cve: r.cve, added: isAdded, w: (xv / xAx.max) * (yv / yAx.max) });
       }
     }
-    const MAXPTS = 800;
-    let capped = false;
-    if (pts.length > MAXPTS) { pts.sort((a, b) => b.w - a.w); pts = pts.slice(0, MAXPTS); capped = true; }
+    // 不設上限：畫出所有有座標的點。依風險權重由低到高排序，讓高風險點最後畫、疊在最上層。
+    pts.sort((a, b) => a.w - b.w);
 
     // 防禦性夾範圍：門檻與座標一律限制在定義域內，避免異常值使點/線跑出畫面被裁掉
     xThresh = Math.max(0, Math.min(xAx.max, xThresh));
@@ -396,31 +395,54 @@
     // 門檻參考線
     svg.appendChild(svgEl('line', { x1: X(xThresh), y1: pad.t, x2: X(xThresh), y2: pad.t + plotH, class: 'ref-line' }));
     svg.appendChild(svgEl('line', { x1: pad.l, y1: Y(yThresh), x2: W - pad.r, y2: Y(yThresh), class: 'ref-line' }));
-    // 點（含透明較大命中區 + 游標提示，確保滑到弱點/主機時顯示 CVE 或 IP）
+    // 點：每點只畫一個標記節點（不再逐點加透明命中區與監聽器）。
+    // 不設上限畫出全部點時，改用「事件委派」——滑鼠事件只掛在 SVG 上一次，
+    // 移動時就近找最近的點顯示提示，避免上萬點時產生數萬個 DOM 節點與監聽器造成卡頓。
+    const hitPts = [];  // { cx, cy, tip }
     for (const p of pts) {
       const cx = X(p.x), cy = Y(p.y), color = RISK_COLORS[p.risk] || '#888';
       let node;
       if (p.added) { const s = 4; node = svgEl('path', { d: `M${cx} ${cy - s}L${cx + s} ${cy}L${cx} ${cy + s}L${cx - s} ${cy}Z`, fill: color, opacity: 0.9 }); }
       else { node = svgEl('circle', { cx, cy, r: 3.2, fill: color, opacity: 0.72 }); }
-      svg.appendChild(node);
       const tipText = (mode === 'host')
         ? `主機 ${p.host}\n${p.name}\n${yAx.label} ${p.y} · ${xAx.label} ${p.x}`
         : `${p.host}${p.cve ? '\nCVE: ' + p.cve : ''}\n${p.name}\n${yAx.label} ${p.y} · ${xAx.label} ${p.x}`;
-      const hit = svgEl('circle', { cx, cy, r: 8, fill: 'transparent' });
-      hit.style.cursor = 'pointer';
-      // 僅在「產報表」時附上原生 <title>（靜態 HTML 無 JS 事件）；畫面上改用自繪浮動提示，避免與原生 tooltip 重複出現
-      if (cfg.forReport) hit.appendChild(svgEl('title', null, tipText));
-      hit.addEventListener('mouseenter', e => showTip(tipText, e));
-      hit.addEventListener('mousemove', moveTip);
-      hit.addEventListener('mouseleave', hideTip);
-      svg.appendChild(hit);
+      // 報表為靜態 HTML（無 JS 事件），改在標記節點上附原生 <title> 以保留滑鼠提示
+      if (cfg.forReport) node.appendChild(svgEl('title', null, tipText));
+      else hitPts.push({ cx, cy, tip: tipText });
+      svg.appendChild(node);
+    }
+    // 畫面互動：以事件委派做就近命中（半徑 8，取最近者）
+    if (!cfg.forReport && hitPts.length) {
+      const HIT_R2 = 8 * 8;
+      const toSvg = evt => {
+        const ctm = svg.getScreenCTM();
+        if (!ctm) return null;
+        const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+        return pt.matrixTransform(ctm.inverse());
+      };
+      const nearest = sp => {
+        let best = null, bestD = HIT_R2;
+        for (const h of hitPts) {
+          const dx = h.cx - sp.x, dy = h.cy - sp.y, d = dx * dx + dy * dy;
+          if (d <= bestD) { bestD = d; best = h; }
+        }
+        return best;
+      };
+      svg.style.cursor = 'crosshair';
+      svg.addEventListener('mousemove', e => {
+        const sp = toSvg(e); if (!sp) { hideTip(); return; }
+        const h = nearest(sp);
+        if (h) { svg.style.cursor = 'pointer'; showTip(h.tip, e); }
+        else { svg.style.cursor = 'crosshair'; hideTip(); }
+      });
+      svg.addEventListener('mouseleave', hideTip);
     }
     // 軸標題與象限標籤（優先處理標籤放在上緣，避免壓到右上角資料點）
     svg.appendChild(svgEl('text', { x: pad.l + plotW / 2, y: H - 6, 'text-anchor': 'middle' }, xAx.label + ' →'));
     svg.appendChild(svgEl('text', { x: 12, y: pad.t + plotH / 2, 'text-anchor': 'middle', transform: `rotate(-90 12 ${pad.t + plotH / 2})` }, yAx.label + ' →'));
     svg.appendChild(svgEl('text', { x: W - pad.r, y: 13, 'text-anchor': 'end', class: 'quad-label' }, '⚠ 右上＝優先處理'));
-    if (capped) svg.appendChild(svgEl('text', { x: pad.l + 2, y: 13, class: 'quad-label' }, `僅顯示風險最高的 ${MAXPTS} 點`));
-    if (missing > 0) svg.appendChild(svgEl('text', { x: pad.l + 2, y: capped ? 26 : 13, class: 'quad-label' }, `${missing} 筆缺 ${xAx.label}/${yAx.label} 未繪`));
+    if (missing > 0) svg.appendChild(svgEl('text', { x: pad.l + 2, y: 13, class: 'quad-label' }, `${missing} 筆缺 ${xAx.label}/${yAx.label} 未繪`));
     return svg;
   }
 
