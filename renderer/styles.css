@@ -154,6 +154,11 @@ button { font-family: inherit; }
 .toolbar-right { display: flex; gap: 7px; align-items: center; }
 .input { background: var(--bg-3); border: 1px solid var(--line); color: var(--text); border-radius: 9px; padding: 5px 8px; font-size: 10.5px; }
 .input:focus { outline: none; border-color: var(--accent); }
+/* 原生下拉選單（如執行 Log 等級）：展開清單需「不透明深底 + 淺字」，
+   否則在系統白底 popup 下會變成白字不可讀（--bg-3 為半透明白，不適用於 option）。 */
+select.input { color: var(--text); background: var(--bg-3); }
+select.input option { background-color: #171b38; color: #f2f4ff; }
+select.input option:checked { background-color: #2a3260; color: #ffffff; }
 .input-num { width: 56px; }
 .input-wide { width: 210px; }
 #f-search { width: 220px; }
