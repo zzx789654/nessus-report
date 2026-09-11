@@ -329,8 +329,11 @@
     const xKey = (cfg.xKey === 'vpr') ? 'vpr' : 'epss';
     const mode = (cfg.mode === 'host') ? 'host' : 'finding';
     const addedOnly = !!cfg.addedOnly;
-    // 可由呼叫端傳入已依 IP 篩選的資料；未傳則用全量
-    const recs = cfg.recs || ((S.new && S.new.recs.length) ? S.new.recs : (S.old ? S.old.recs : []));
+    // 可由呼叫端傳入已依 IP 篩選的資料（風險圖表分頁）；未傳（如報表）則依全域舊版/新版來源，
+    // 該來源無資料時再退回另一份，確保四象限一致套用全域「舊版／新版」選擇。
+    const recs = cfg.recs || (S.viewSource === 'old'
+      ? ((S.old && S.old.recs.length) ? S.old.recs : (S.new ? S.new.recs : []))
+      : ((S.new && S.new.recs.length) ? S.new.recs : (S.old ? S.old.recs : [])));
     const rows = cfg.rows || S.rows;
 
     // Y 軸：固定 CVSS v2.0；若整份都沒有 v2.0 才降級用 v3.0
