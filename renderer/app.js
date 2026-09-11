@@ -1468,7 +1468,7 @@
   }
 
   function renderOverviewCharts() {
-    $('#chart-severity').replaceChildren(chartSeverity(S.stats.oldSev, S.stats.newSev, S.stats.mode));
+    $('#chart-totals-ov').replaceChildren(chartTotalsCompare(S.stats));
     $('#chart-diff').replaceChildren(chartDiff(S.stats));
   }
   function renderCharts() {
@@ -1500,7 +1500,7 @@
 
     const empty = (sel.size === 0 && allHosts > 0);
     if (empty) {
-      ['#chart-quadrant', '#chart-totals', '#chart-heatmap', '#chart-severity2', '#chart-tophosts'].forEach(s => {
+      ['#chart-quadrant', '#chart-totals', '#chart-heatmap', '#chart-tophosts'].forEach(s => {
         const el = $(s); el.replaceChildren(); const d = document.createElement('div'); d.className = 'empty-state small'; d.textContent = '未選取任何主機，請於上方「IP 篩選」勾選。'; el.appendChild(d);
       });
       return;
@@ -1512,7 +1512,6 @@
     }));
     $('#chart-totals').replaceChildren(chartTotalsCompare(stats));
     $('#chart-heatmap').replaceChildren(chartHeatmap(priority, S.heatMetric));
-    $('#chart-severity2').replaceChildren(chartSeverity(stats.oldSev, stats.newSev, stats.mode));
     $('#chart-tophosts').replaceChildren(chartTopHosts(priority));
     // 標示各圖資料來源
     const single = chartSourceLabel();
@@ -1521,7 +1520,6 @@
     setText('#src-tophosts', '資料來源：' + single);
     const both = (S.stats.mode === 'diff') ? '資料來源：舊版 vs 新版（對比）' : '資料來源：' + single;
     setText('#src-totals', both);
-    setText('#src-severity', both);
   }
   function setText(sel, txt) { const el = $(sel); if (el) el.textContent = txt; }
   // 單一資料集圖表的來源（依全域 viewSource）
